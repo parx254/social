@@ -52,7 +52,7 @@
       </div>
       <ul class='about-list'>
         <li>
-          <a style=text-decoration:none; href='privacypolicy.php'><i class='fa fa-user-secret'></i>
+          <a style=text-decoration:none; href='privacy-policy.php'><i class='fa fa-user-secret'></i>
           </a>
         </li>
         <li>
