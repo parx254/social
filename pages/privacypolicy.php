@@ -101,7 +101,9 @@
         <p>If you have any questions about this Privacy Policy, please contact us on our about page</p>
       </div>
     </div>
-  <?php footer(); ?>
+  <?php
+    include "footer.php";
+    ?>
     </body>
   <script src="/js/script.js"></script> 
 </html>
