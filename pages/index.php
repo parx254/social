@@ -3,6 +3,9 @@
   $title = "Social Destinations";                 // (1) Set the title
   $activePage = 'home';                   // (2) Set the active page
   $city = 'Amsterdam';                  // (5) Set the city
+  $keywords = 'Home, Travel, Trips, Travel Tips, Excursions, Sports, Holidays, Social Destinations, Social, Destinations';          // Set the keywords
+  $description = 'Home'; //Set the description
+  $currentcolor = '#000';           // (5) Set the color
   include "header.php";                 // (4) Include the header
   ?>
 <body>
