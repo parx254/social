@@ -61,7 +61,8 @@
         .feedPostTitle img:hover, .videofeedPostTitle img:hover{border-color:<?php echo $currentcolor; ?>}
         #toggle.on .span, .location, .openbtn, .topslide {background-color:<?php echo $currentcolor; ?>}
         #resize #menu li a.active-page, #resize ul li:hover:not(select){border-bottom:solid <?php echo $currentcolor; ?>}
-        .footer-list li.active{border-top:2px solid <?php echo $currentcolor; ?>
+        .footer-list li.active{border-top:2px solid <?php echo $currentcolor; ?>}
+        #resize #menu li.active{border-bottom:3px solid <?php echo $currentcolor; ?>}
       </style>
   <header>
     <nav>
