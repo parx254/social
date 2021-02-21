@@ -689,10 +689,9 @@ nav #menu #response1 ul li:hover:not(active) {
 }
 
 #resize #menu {
- padding-top: 8%;
- padding-bottom: 8%;
- height: 100%
-}
+ height: 100%;
+ width: 90%;
+ margin: auto}
 
 #resize #menu li {
  display: block;
@@ -714,13 +713,12 @@ nav #menu #response1 ul li:hover:not(active) {
  align-items: center;
  color: #000;
  height: 100%;
- font-family: MontHeavy
-}
+ font-family: MontBold;}
 
 #resize.active {
  visibility: visible;
  opacity: .99;
- margin: 0;
+ margin: 0;padding-top: 40px;padding-bottom: 40px;
  height: 100%;
  overflow: hidden
 }
