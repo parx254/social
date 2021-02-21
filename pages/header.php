@@ -124,10 +124,10 @@
                 <a href='Amsterdam.php'>Amsterdam</a>
                 <a href='Barcelona.php'>Barcelona</a>
                 <a href='London.php'>London</a>
+                <a href='Moscow.php'>Moscow</a>
                 <a href='Paris.php'>Paris</a>
                 <h5>Canada</h5>
                 <hr>
-                <a href='Calgary.php'>Calgary</a>
                 <a href='Edmonton.php'>Edmonton</a>
                 <a href='Montreal.php'>Montreal</a>
                 <a href='Toronto.php'>Toronto</a>
