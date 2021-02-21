@@ -157,7 +157,7 @@
               </select>
               <br>
               <br>
-              <p><textarea name='blogtext' rows='10' placeholder='Type here...' required></textarea></p>
+              <p><textarea name='blogtext' maxlength='180' placeholder='Type here...' required></textarea></p>
               <br>
               <i class="fa fa-file-image-o" aria-hidden="true"></i>
               <input type='file' name='Filename' accept="image/*" onchange='loadFile(event)' required>
@@ -238,7 +238,7 @@
               </select>
               <br>
               <br>
-              <p><textarea name='blogtext' rows='10' placeholder='Type here...' required></textarea></p>
+              <p><textarea name='blogtext' maxlength='180' placeholder='Type here...' required></textarea></p>
               <br>
               <i class="fa fa-file-video-o" aria-hidden="true"></i>
               <input type='file' name='Filename' accept="video/mp4,video/x-m4v,video/*" required>
