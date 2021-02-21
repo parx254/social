@@ -72,7 +72,8 @@
     </body>
       <style>
       @media(max-width:900px){nav{border-bottom:1px solid #f5f5f5;height:50px;position:static;z-index:1;top:0}#toggle .span{background:#000}}
-      @media(min-width:901px){nav{background: #000;position:absolute}
+      @media(min-width:901px){nav{background: #000;position:absolute}}
       .maintitle{margin-top:100px}
+      .bodycontainer{margin-bottom:100px}
     </style>
 </html>
