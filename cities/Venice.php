@@ -5,7 +5,7 @@
   $city = 'Venice';                  // (3) Set the city
   $keywords = 'Venice, Travel, Trips, Travel Tips, Excursions, Sports, Holidays, Social Destinations, Social, Destinations';          // Set the keywords
   $activePage = 'explore';             // (4) Set the active page
-  $currentcolor = '#00843D';           // (5) Set the color
+  $currentcolor = '#2D5373';           // (5) Set the color
   include "header.php";                // (6) Include the header
   ?>
 <body>
