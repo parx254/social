@@ -689,14 +689,14 @@ if (mysqli_connect_errno()) {
                   <input type='file' name='Filename' required>
                   <br>
                   <br>
-              <button type='submit' name='profilePic'>Upload Photo</button></form>
+              <button type='submit' name='profilePic'><i class='fa fa-paper-plane' aria-hidden='true'></i></button></form>
               <br>
               <form method='post' action='control' enctype='multipart/form-data'>
                   Change Cover Photo
                   <input type='file' name='Filename' required>
                   <br>
                   <br>
-              <button type='submit' name='coverPic'>Upload Photo</button></form></div>
+              <button type='submit' name='coverPic'><i class='fa fa-paper-plane' aria-hidden='true'></i></button></form></div>
               ";
       }
     } else {
