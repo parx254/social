@@ -2399,9 +2399,14 @@ login::placeholder {
  padding: 8px
 }
 
+form {
+    color:#fff
+}
+
 input:-webkit-autofill {
  -webkit-text-fill-color: #fff !important
 }
+
 
 @media screen and (max-width: 480px) {
  .cell {
