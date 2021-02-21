@@ -22,7 +22,7 @@
         Your browser does not support the video tag.
       </video>
       <div class="city-hero-text">
-        <h1>Vancouver</h1>
+        <h1>Venice</h1>
           <a href="#" class="scroll-down" address="true"></a>
       </div>
     </div>
