@@ -396,10 +396,34 @@
     </div>
     <div class="cell">
       <a href="https://www.socialdestinations.com/Moscow.php">
-        <img alt="London" class="responsive-image" loading="lazy" src="SiteImages/moscow.jpg">
+        <img alt="Moscow" class="responsive-image" loading="lazy" src="SiteImages/moscow.jpg">
       </a>
       <div class="centered">
         <a href="https://www.socialdestinations.com/Moscow.php">Moscow</a>
+      </div>
+    </div>
+    <div class="cell">
+      <a href="https://www.socialdestinations.com/Paris.php">
+        <img alt="Paris" class="responsive-image" loading="lazy" src="SiteImages/paris.jpg">
+      </a>
+      <div class="centered">
+        <a href="https://www.socialdestinations.com/Moscow.php">Paris</a>
+      </div>
+    </div>
+    <div class="cell">
+      <a href="https://www.socialdestinations.com/Rome.php">
+        <img alt="Rome" class="responsive-image" loading="lazy" src="SiteImages/rome.jpg">
+      </a>
+      <div class="centered">
+        <a href="https://www.socialdestinations.com/Rome.php">Rome</a>
+      </div>
+    </div>
+    <div class="cell">
+      <a href="https://www.socialdestinations.com/Venice.php">
+        <img alt="Venice" class="responsive-image" loading="lazy" src="SiteImages/venice.jpg">
+      </a>
+      <div class="centered">
+        <a href="https://www.socialdestinations.com/Venice.php">Venice</a>
       </div>
     </div>
   </div>
