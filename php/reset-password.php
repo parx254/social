@@ -1,72 +1,77 @@
 <?php
-include('config.php');
-if (isset($_GET["key"]) && isset($_GET["email"]) && isset($_GET["action"]) 
-&& ($_GET["action"]=="reset") && !isset($_POST["action"])){
-  $key = $_GET["key"];
-  $email = $_GET["email"];
-  $curDate = date("Y-m-d H:i:s");
-  $query = mysqli_query($con,
-  "SELECT * FROM `password_reset_temp` WHERE `key`='".$key."' and `email`='".$email."';"
-  );
-  $row = mysqli_num_rows($query);
-  if ($row==""){
-  $error .= '<h2>Invalid Link</h2>
-<p>The link is invalid/expired. Either you did not copy the correct link
-from the email, or you have already used the key in which case it is 
-deactivated.</p>
-<p><a href="https://www.socialdestinations/reset.php">
-Click here</a> to reset password.</p>';
-}else{
-  $row = mysqli_fetch_assoc($query);
-  $expDate = $row['expDate'];
-  if ($expDate >= $curDate){
-  ?>
-<br />
-<form method="post" action="" name="update">
-    <input type="hidden" name="action" value="update" />
-    <br /><br />
-    <label><strong>Enter New Password:</strong></label><br />
-    <input type="password" name="pass1" maxlength="15" required />
-    <br /><br />
-    <label><strong>Re-Enter New Password:</strong></label><br />
-    <input type="password" name="pass2" maxlength="15" required />
-    <br /><br />
-    <input type="hidden" name="email" value="<?php echo $email;?>" />
-    <input type="submit" value="Reset Password" />
-</form>
-<?php
-}else{
-$error .= "<h2>Link Expired</h2>
-<p>The link is expired. You are trying to use the expired link which 
-as valid only 24 hours (1 days after request).<br /><br /></p>";
+require_once 'config.php';
+require_once 'functions.php';
+
+if (isset($_GET['vkey'])) {
+    $vkey = $_GET['vkey'];
+} else {
+    die("Invalid request.");
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $vkey = $_POST['vkey'];
+    $password = $_POST['password'];
+    $confirm = $_POST['confirm'];
+
+    if ($password !== $confirm) {
+        $error = "Passwords do not match.";
+    } else {
+        $conn = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+        if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
+
+        // Validate token and expiration
+        $stmt = $conn->prepare("SELECT u.email, pr.expires FROM users u LEFT JOIN password_resets pr ON u.email = pr.email WHERE u.vkey = ?");
+        $stmt->bind_param("s", $vkey);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            if ($row['expires'] < date("U")) {
+                $error = "This reset link has expired. Please request a new one.";
+            } else {
+                $email = $row['email'];
+                $hashed = password_hash($password, PASSWORD_DEFAULT);
+
+                // Update password and reauthorize account
+                $update = $conn->prepare("UPDATE users SET password = ?, authorized = 1 WHERE email = ?");
+                $update->bind_param("ss", $hashed, $email);
+                $update->execute();
+
+                // Clean up reset token
+                $delete1 = $conn->prepare("DELETE FROM password_resets WHERE email = ?");
+                $delete1->bind_param("s", $email);
+                $delete1->execute();
+
+                $success = "Your password has been reset successfully! You may now log in.";
             }
-      }
-if($error!=""){
-  echo "<div class='error'>".$error."</div><br />";
-  }			
-} // isset email key validate end
-if(isset($_POST["email"]) && isset($_POST["action"]) &&
-($_POST["action"]=="update")){
-$error="";
-$pass1 = mysqli_real_escape_string($con,$_POST["pass1"]);
-$pass2 = mysqli_real_escape_string($con,$_POST["pass2"]);
-$email = $_POST["email"];
-$curDate = date("Y-m-d H:i:s");
-if ($pass1!=$pass2){
-$error.= "<p>Password do not match, both password should be same.<br /><br /></p>";
-  }
-  if($error!=""){
-echo "<div class='error'>".$error."</div><br />";
-}else{
-$pass1 = md5($pass1);
-mysqli_query($con,
-"UPDATE `users` SET `password`='".$pass1."', `trn_date`='".$curDate."' 
-WHERE `email`='".$email."';"
-);
-mysqli_query($con,"DELETE FROM `password_reset_temp` WHERE `email`='".$email."';");
-echo '<div class="error"><p>Congratulations! Your password has been updated successfully.</p>
-<p><a href="https://www.socialdestinations/login.php">
-Click here</a> to Login.</p></div><br />';
-  }		
+        } else {
+            $error = "Invalid or expired link.";
+        }
+
+        $stmt->close();
+        $conn->close();
+    }
 }
 ?>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Reset Password - Social Destinations</title>
+</head>
+<body>
+  <h2>Reset Password</h2>
+  <?php if (!empty($error)) echo "<p style='color:red;'>$error</p>"; ?>
+  <?php if (!empty($success)) echo "<p style='color:green;'>$success</p>"; ?>
+  <?php if (empty($success)) { ?>
+  <form method="POST" action="">
+    <input type="hidden" name="vkey" value="<?php echo htmlspecialchars($vkey); ?>">
+    <label>New Password:</label><br>
+    <input type="password" name="password" required><br><br>
+    <label>Confirm Password:</label><br>
+    <input type="password" name="confirm" required><br><br>
+    <button type="submit">Reset Password</button>
+  </form>
+  <?php } ?>
+</body>
+</html>
