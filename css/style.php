@@ -68,7 +68,7 @@
     --color-border-inverse: #fff;
     /* ===== Surfaces ===== */
     --color-surface: #ffffff;
-    --color-surface-alt: #353E43;
+    --color-surface-alt: #000;
     --color-surface-soft: #f4f4f4;
     --color-surface-inverse: #353E43;
     /* ===== Backgrounds ===== */
@@ -109,7 +109,7 @@
     /* warm orange */
     --shadow-color: rgba(0, 0, 0, 0.15);
     --focus-ring: #4a90e2;
-    --background-dark-alt: #353E43;
+    --background-dark-alt: #000;
     --background-profile: #f3f4f6;
     --border-light-gray: #e0e0e0;
     --accent-like: #d32f2f;
@@ -885,7 +885,7 @@ nav #menu #response1 li:hover:last-child {
     padding: 40px 0;
 }
 
-.login .fill input, .maintitle {
+.maintitle {
     margin-bottom: 20px;
     margin-top: 20px;
 }
@@ -946,7 +946,7 @@ cell {
 
 .login {
     line-height: 90px;
-    margin: 10% 5%;
+    margin: 20px;
     vertical-align: middle;
 }
 
@@ -965,6 +965,8 @@ cell {
 
 .login .fill input {
     border: 0;
+    margin-bottom: 15px;
+    margin-top: 15px;
     border-bottom: 2px solid var(--color-surface);
     font-size: 14px;
     color: var(--color-surface);
@@ -1806,6 +1808,7 @@ button {
     background: 0;
     border: 2px solid var(--color-surface);
     border-radius: 20px;
+    margin: 0px auto;
     color: var(--color-surface);
     -moz-transition: all var(--motion-base) var(--ease-smooth);
     -o-transition: all var(--motion-base) var(--ease-smooth);
@@ -1980,9 +1983,11 @@ button {
 .intro1, .intro2 {
     margin-left: auto;
     margin-right: auto;
-    padding: 40px 0;
     transform-origin: 100%;
     overflow: visible;
+}
+.intro2 {
+    padding: 40px 0;
 }
 
 .myprofvideoposts {
@@ -2144,7 +2149,7 @@ input:-webkit-autofill:focus textarea:-webkit-autofill, select:-webkit-autofill,
 
 .infologin {
     line-height: 90px;
-    margin: 10% 5%;
+    margin: 20px;
     vertical-align: middle;
 }
 
@@ -2186,10 +2191,12 @@ input:-webkit-autofill, input:-webkit-autofill:active, input:-webkit-autofill:fo
 }
 
 .info-login-group.submit {
-    background: 0;
-    border: 2px solid var(--color-border-dark);
-    border-radius: 20px;
-    color: var(--text-heading);
+  background: 0;
+  border: 2px solid var(--color-border-dark);
+  border-radius: 20px;
+  color: var(--text-heading);
+  display: block;
+  margin: 0 auto; /* centers horizontally */
 }
 
 .login a {
@@ -2419,7 +2426,7 @@ nav #menu li a .tooltip:before {
     bottom: -3px;
     height: 2px;
     width: 40%;
-    /* 👈 visible underline before hover */
+    /* ðŸ‘ˆ visible underline before hover */
     background-color: var(--accent-primary);
     border-radius: 2px;
     transition: all var(--motion-base) var(--ease-smooth);
