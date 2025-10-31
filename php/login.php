@@ -102,7 +102,6 @@
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'>
     <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.2.3/animate.min.css"></script>
-    <script src="/js/myscript.js"></script>
     <script>
         var city = "Nashville";
     </script>
@@ -150,14 +149,15 @@
                 </div>
                 <button type="submit" class="login-group submit">Login</button><br>
                 </form>
-                <p><a href="registration.php">Create an account</a></p>
+                <p><a href="forgot-password.php">Forgot your password?</a></p>
+                <p><a href="register.php">Create an account</a></p>
             </div>
         </div>
         <div class="leftside">
             <div class="infologin">
                 <h1>Welcome</h1>
                 <h2>Haven't made an account</h2>
-                <a href="registration.php"><button class="info-login-group submit">Register</button></a>
+                <a href="register.php"><button class="info-login-group submit">Register</button></a>
             </div>
         </div>
     </div>
