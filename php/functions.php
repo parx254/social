@@ -1,13 +1,20 @@
 <?php
+
+
+
+// Namespace shortcuts
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 define('DEFAULT_PROF','Images/prof_pics/default.jpg');
 define('DEFAULT_COVER','Images/cover_pics/default.jpg');
 // =========================
 // Database Configuration
 // =========================
-define('DB_SERVER', 'localhost');
-define('DB_USERNAME', 'pamcclel');
-define('DB_PASSWORD', 'Ozzie12!');
-define('DB_NAME', 'socialdestinationsdatabase');
+if (!defined('DB_SERVER'))   define('DB_SERVER', 'localhost');
+if (!defined('DB_USERNAME')) define('DB_USERNAME', 'pamcclel');
+if (!defined('DB_PASSWORD')) define('DB_PASSWORD', 'Ozzie12!');
+if (!defined('DB_NAME'))     define('DB_NAME', 'socialdestinationsdatabase');
 /* Attempt to connect to MySQL database */
 // Connect to MySQL database
 $con = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
@@ -5383,6 +5390,174 @@ while ($row = $result->fetch_assoc()) {
       }
     }
   }
+  
+  
+  
+ // ------------------------------------------------------
+// Include PHPMailer (manual cPanel version)
+// ------------------------------------------------------
+
+
+require '/home/dzx0rrb61cz9/public_html/PHPMailer-master/src/Exception.php';
+require '/home/dzx0rrb61cz9/public_html/PHPMailer-master/src/PHPMailer.php';
+require '/home/dzx0rrb61cz9/public_html/PHPMailer-master/src/SMTP.php';
+
+// ------------------------------------------------------
+// USER REGISTRATION FUNCTION
+// ------------------------------------------------------
+function register_user($data) {
+    global $con;
+    $errors = [];
+
+    $username = trim($data['username'] ?? '');
+    $firstname = trim($data['firstname'] ?? '');
+    $lastname  = trim($data['lastname'] ?? '');
+    $email     = trim($data['email'] ?? '');
+    $password  = trim($data['password'] ?? '');
+    $confirm   = trim($data['confirm_password'] ?? '');
+
+    // Bot protection
+    if (isset($data['loadTime'])) {
+        $loadTime = $data['loadTime'];
+        $currentTime = round(microtime(true) * 1000);
+        $timeSpent = ($currentTime - $loadTime) / 1000;
+        if ($timeSpent < 2) {
+            $errors['username_err'] = "Bot detected. Please try again.";
+            return ['success' => false, 'errors' => $errors];
+        }
+    }
+
+    // Basic validation
+    if (!$username) $errors['username_err'] = "Please enter a username.";
+    if (!$firstname) $errors['firstname_err'] = "Please enter your first name.";
+    if (!$lastname)  $errors['lastname_err']  = "Please enter your last name.";
+    if (!$email)     $errors['email_err']     = "Please enter your email.";
+    if (!$password)  $errors['password_err']  = "Please enter a password.";
+    if ($password !== $confirm) $errors['confirm_password_err'] = "Passwords do not match.";
+
+    if ($errors) return ['success' => false, 'errors' => $errors];
+
+    // Check duplicates
+    $stmt = $con->prepare("SELECT userID FROM users WHERE username=? OR email=?");
+    $stmt->bind_param("ss", $username, $email);
+    $stmt->execute();
+    $stmt->store_result();
+    if ($stmt->num_rows > 0) {
+        $errors['username_err'] = "Username or email already exists.";
+        $stmt->close();
+        return ['success' => false, 'errors' => $errors];
+    }
+    $stmt->close();
+
+    // Create vkey for email verification
+    $vkey = md5(time() . $username);
+
+    // Insert new user
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    $stmt = $con->prepare("INSERT INTO users (username, firstname, lastname, password, email, vkey, authorized) VALUES (?, ?, ?, ?, ?, ?, 0)");
+    $stmt->bind_param("ssssss", $username, $firstname, $lastname, $hashed_password, $email, $vkey);
+
+    if ($stmt->execute()) {
+        $stmt->close();
+
+        // Create profile row
+        $stmt2 = $con->prepare("INSERT INTO profiles (userID) SELECT userID FROM users WHERE username=?");
+        $stmt2->bind_param("s", $username);
+        $stmt2->execute();
+        $stmt2->close();
+
+        // Send email
+        if (send_verification_email($email, $vkey)) {
+            return ['success' => true];
+        } else {
+            $errors['email_err'] = "Registered, but failed to send verification email.";
+            return ['success' => false, 'errors' => $errors];
+        }
+    } else {
+        $errors['username_err'] = "Database error. Please try again.";
+        return ['success' => false, 'errors' => $errors];
+    }
+}
+
+// ------------------------------------------
+// FINAL EMAIL VERIFICATION FUNCTION (LIVE)
+// ------------------------------------------
+
+
+function send_verification_email($email, $vkey) {
+    require_once __DIR__ . '/PHPMailer-master/src/PHPMailer.php';
+    require_once __DIR__ . '/PHPMailer-master/src/SMTP.php';
+    require_once __DIR__ . '/PHPMailer-master/src/Exception.php';
+
+    $mail = new PHPMailer(true);
+
+    try {
+        // SMTP CONFIGURATION
+$mail->isSMTP();
+$mail->Host       = 'p3plzcpnl507626.prod.phx3.secureserver.net'; // GoDaddy's real SMTP endpoint
+$mail->SMTPAuth   = true;
+$mail->Username   = 'noreply@socialdestinations.com';
+$mail->Password   = 'DiYK!}T0giE+';
+$mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // SSL
+$mail->Port       = 465;
+$mail->CharSet    = 'UTF-8';
+$mail->SMTPOptions = [
+    'ssl' => [
+        'verify_peer' => false,
+        'verify_peer_name' => false,
+        'allow_self_signed' => true,
+    ],
+];
+
+        // HEADERS & REPLY
+        $mail->setFrom('noreply@socialdestinations.com', 'Social Destinations');
+        $mail->addReplyTo('help@socialdestinations.com', 'Social Destinations Support');
+        $mail->addAddress($email);
+
+        // CONTENT
+        $verifyLink = "https://socialdestinations.com/verify.php?vkey=" . urlencode($vkey);
+        $mail->isHTML(true);
+        $mail->Subject = 'Verify Your Social Destinations Account';
+        $mail->Body = "
+            <div style='font-family:Arial,sans-serif;font-size:14px;color:#333'>
+                <h2 style='color:#BE3455'>Welcome to Social Destinations!</h2>
+                <p>Click the button below to verify your email and activate your account:</p>
+                <p>
+                    <a href='$verifyLink' 
+                       style='display:inline-block;padding:10px 20px;background-color:#BE3455;color:#fff;text-decoration:none;border-radius:5px;'>
+                       Verify My Account
+                    </a>
+                </p>
+                <p>If you didn’t create this account, you can safely ignore this email.</p>
+                <hr>
+                <small>© " . date('Y') . " SocialDestinations.com</small>
+            </div>
+        ";
+        $mail->AltBody = "Verify your account here: $verifyLink";
+
+
+
+        // SEND
+        
+
+
+
+        $mail->send();
+        return true;
+
+    } catch (Exception $e) {
+        error_log("❌ Mailer Error: {$mail->ErrorInfo}");
+        return false;
+    }
+}
+
+
+
+  
+  
+  
+  
+  
   function allplaces()
   {
     global $user;
