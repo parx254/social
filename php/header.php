@@ -56,6 +56,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title><?php echo $title; ?></title>
+<script src="https://www.google.com/recaptcha/api.js?render=6Ld8-MorAAAAAHIGKWJjUqLFYfvh1DR3QXUnBLU5"></script>
 
     <link rel="stylesheet" href="/css/style.php" media="screen">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0/css/all.css">
@@ -161,7 +162,6 @@
       }
     </style>
   </head>
-
   <body>
     <header>
       <nav>
