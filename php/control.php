@@ -2,10 +2,10 @@
 $location = str_replace(' ', ' ', $name);
 session_start();
 /* Database credentials.*/
-define('DB_SERVER', 'localhost');
-define('DB_USERNAME', 'pamcclel');
-define('DB_PASSWORD', 'Ozzie12!');
-define('DB_NAME', 'socialdestinationsdatabase');
+if (!defined('DB_SERVER'))   define('DB_SERVER', 'localhost');
+if (!defined('DB_USERNAME')) define('DB_USERNAME', 'pamcclel');
+if (!defined('DB_PASSWORD')) define('DB_PASSWORD', 'Ozzie12!');
+if (!defined('DB_NAME'))     define('DB_NAME', 'socialdestinationsdatabase');
 /* Attempt to connect to MySQL database */
 $con = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
 if (mysqli_connect_errno()) {
@@ -652,7 +652,7 @@ function placesVisited() {
             }
         }
     } else {
-        echo "You haven't been anywhere.....yet!";
+        echo "You haven't posted any photos yet!";
     }
 }
 function placesVideoVisited() {
@@ -679,7 +679,7 @@ function placesVideoVisited() {
             }
         }
     } else {
-        echo "You haven't been anywhere.....yet!";
+        echo "You haven't post any videos yet!";
     }
 }
 function otherplacesVisited() {
