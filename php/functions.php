@@ -5398,9 +5398,9 @@ while ($row = $result->fetch_assoc()) {
 // ------------------------------------------------------
 
 
-require '/home/dzx0rrb61cz9/public_html/PHPMailer-master/src/Exception.php';
-require '/home/dzx0rrb61cz9/public_html/PHPMailer-master/src/PHPMailer.php';
-require '/home/dzx0rrb61cz9/public_html/PHPMailer-master/src/SMTP.php';
+require '/home/dzx0rrb61cz9/public_html/PHPMailer/src/Exception.php';
+require '/home/dzx0rrb61cz9/public_html/PHPMailer/src/PHPMailer.php';
+require '/home/dzx0rrb61cz9/public_html/PHPMailer/src/SMTP.php';
 
 // ------------------------------------------------------
 // USER REGISTRATION FUNCTION
@@ -5554,7 +5554,61 @@ $mail->SMTPOptions = [
 
 
   
-  
+function send_password_reset_email($email, $username, $token) {
+    // --- Build reset link ---
+    $short_token = substr($token, 0, 16);
+    $reset_link = "https://www.socialdestinations.com/reset-password.php?t=" . urlencode($short_token);
+
+    // --- Email content ---
+    $subject = "Reset Your Social Destinations Password";
+    $message = "
+        <html>
+        <head><title>Reset Your Password</title></head>
+        <body style='font-family: Arial, sans-serif; background-color: #f8f8f8; padding: 20px;'>
+          <div style='max-width: 600px; background: #ffffff; padding: 20px; border-radius: 8px;'>
+            <h2 style='color: #BE3455;'>Reset Your Password</h2>
+            <p>Hello <strong>" . htmlspecialchars($username) . "</strong>,</p>
+            <p>We received a request to reset your password for your Social Destinations account.</p>
+            <p><a href='$reset_link' style='background: #BE3455; color: #fff; padding: 10px 15px; border-radius: 5px; text-decoration: none;'>Reset Password</a></p>
+            <p>If the button doesn’t work, copy and paste this link into your browser:</p>
+            <p><a href='$reset_link'>$reset_link</a></p>
+            <p><em>This link will expire in 3 hours.</em></p>
+            <hr style='border:none; border-top:1px solid #eee; margin:20px 0;'>
+            <p style='font-size:13px; color:#777;'>If you did not request this, you can safely ignore this email.</p>
+          </div>
+        </body>
+        </html>
+    ";
+
+    // --- PHPMailer setup ---
+    $mail = new PHPMailer(true);
+
+    try {
+        $mail->isSMTP();
+        $mail->Host       = 'p3plzcpnl507626.prod.phx3.secureserver.net'; 
+        $mail->SMTPAuth   = true;
+        $mail->Username   = "noreply@socialdestinations.com";
+        $mail->Password   = "DiYK!}T0giE+";
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Port       = 465;
+
+        $mail->setFrom("noreply@socialdestinations.com", "Social Destinations");
+        $mail->addAddress($email);
+        $mail->addReplyTo("parker@socialdestinations.com", "Parker McClelland");
+
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $message;
+
+        $mail->send();
+        error_log("✅ SMTP: Password reset email sent to $email ($reset_link)");
+        return true;
+
+    } catch (Exception $e) {
+        error_log("❌ SMTP: Failed sending to $email — " . $mail->ErrorInfo);
+        return false;
+    }
+}
   
   
   
