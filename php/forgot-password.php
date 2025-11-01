@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt2->execute();
 
             // Email setup (same style as verification)
-            $reset_link = "https://www.socialdestinations.com/reset_password.php?vkey=" . $token;
+            $reset_link = "https://www.socialdestinations.com/reset-password.php?vkey=" . $token;
 
             $subject = "Reset Your Social Destinations Password";
             $message = "
