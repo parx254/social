@@ -1,14 +1,17 @@
 <?php
-require_once 'config.php';
 require_once 'functions.php';
 
-if (isset($_GET['vkey'])) {
+// Accept both new short token (?t=) and legacy (?vkey=)
+if (isset($_GET['t'])) {
+    $vkey = $_GET['t'];
+} elseif (isset($_GET['vkey'])) {
     $vkey = $_GET['vkey'];
 } else {
     die("Invalid request.");
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    global $con; // use shared DB connection
     $vkey = $_POST['vkey'];
     $password = $_POST['password'];
     $confirm = $_POST['confirm'];
@@ -16,11 +19,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($password !== $confirm) {
         $error = "Passwords do not match.";
     } else {
-        $conn = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
-        if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
-
         // Validate token and expiration
-        $stmt = $conn->prepare("SELECT u.email, pr.expires FROM users u LEFT JOIN password_resets pr ON u.email = pr.email WHERE u.vkey = ?");
+        $stmt = $con->prepare("
+            SELECT u.email, pr.expires 
+            FROM users u 
+            LEFT JOIN password_resets pr ON u.email = pr.email 
+            WHERE LEFT(u.vkey, 16) = ?
+        ");
         $stmt->bind_param("s", $vkey);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -33,12 +38,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $hashed = password_hash($password, PASSWORD_DEFAULT);
 
                 // Update password and reauthorize account
-                $update = $conn->prepare("UPDATE users SET password = ?, authorized = 1 WHERE email = ?");
+                $update = $con->prepare("UPDATE users SET password = ?, authorized = 1 WHERE email = ?");
                 $update->bind_param("ss", $hashed, $email);
                 $update->execute();
 
                 // Clean up reset token
-                $delete1 = $conn->prepare("DELETE FROM password_resets WHERE email = ?");
+                $delete1 = $con->prepare("DELETE FROM password_resets WHERE email = ?");
                 $delete1->bind_param("s", $email);
                 $delete1->execute();
 
@@ -49,7 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $stmt->close();
-        $conn->close();
     }
 }
 ?>
