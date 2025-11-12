@@ -96,7 +96,7 @@
             <div class="messages">
                 <div class="maintitle">
                     <div class="text-box">
-                        <h2>TRASH</h2>
+                        <h2>Trash</h2>
                     </div>
                 </div>
                 <?php Trashmessages(); ?>
