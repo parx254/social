@@ -1,6 +1,6 @@
 <?php  
-  include ('control.php');
-  include ('functions.php');
+  require_once 'functions.php';
+  require_once 'control.php';
   session_start();
   global $user;
   global $con;
