@@ -1,6 +1,6 @@
 <?php
-require_once ('functions.php');
-require_once ('control.php');
+require_once 'functions.php';
+require_once 'control.php';
 $title = "Following | Social Destinations";   // Set the title
 $activePage = 'none';          // Set the active page
 $city = 'Nashville';              // Set the city
