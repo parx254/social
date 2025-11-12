@@ -1260,7 +1260,7 @@ exit;
     function otherplacesVideoVisited() {
     global $user;
     global $con;
-    $currentuser = $currentuser;
+    global $currentuser;
     $sql = "SELECT DISTINCT videolocation
     FROM posts
     WHERE userID = (SELECT userID FROM users WHERE username = '$currentuser')
