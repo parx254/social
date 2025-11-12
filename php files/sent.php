@@ -1,6 +1,6 @@
 <?php
-require_once 'control.php';
 require_once 'functions.php';
+require_once 'control.php';
 verifySessionAndUser();
 $title = "Sent Messages | Social Destinations";
 $city = 'Nashville';
@@ -47,14 +47,7 @@ include "header.php";
             <?php profile(); ?>
           </div>
         </div>
-        <div class='prof_actions'>
-          <form action="my-profile.php"><button type="submit"><i class="far fa-home"></i><p>Home</p></button></form>
-          <form action="inbox.php"><button type="submit"><i class="far fa-inbox"></i><p>Inbox</p></button></form>
-          <form action="sent.php"><button type="submit" class="highlighted"><i class="far fa-envelope"></i><p>Sent</p></button></form>
-          <form action="edit-profile.php"><button type="submit"><i class="fa fa-pencil-square-o"></i><p>Edit</p></button></form>
-          <form action="control.php" method='POST'><button type="submit" name='logout'><i class="far fa-sign-out"></i><p>Logout</p></button></form>
-          <button id='changePic'><i class='fa fa-picture-o'></i><p>Edit Photos</p></button>
-        </div>
+<?php renderProfileActions('sent'); ?>
         <div class="messages">
           <div class="maintitle">
             <div class="text-box"><h2>Sent Messages</h2></div>
