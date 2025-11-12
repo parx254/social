@@ -1,6 +1,6 @@
 <?php
-require_once 'control.php';
 require_once 'functions.php';
+require_once 'control.php';
 verifySessionAndUser();
 $title = "Feed | Social Destinations";
 $activePage = 'feed';
