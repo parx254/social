@@ -43,42 +43,7 @@ include "header.php";
             <?php profile(); ?>
           </div>
         </div>
-        <div class='prof_actions'>
-          <form action="my-profile.php">
-          <button type="submit" class="highlighted">
-          <i class="far fa-home-alt"></i>
-          <p>Home</p>
-          </button>
-          </form>
-          <form action="inbox.php">
-          <button type="submit">
-          <i class="far fa-inbox"></i>
-          <p>Inbox</p>
-          </button>
-          </form>
-          <form action="sent.php">
-          <button type="submit">
-          <i class="far fa-envelope"></i>
-          <p>Sent</p>
-          </button>
-          </form>
-          <form action="edit-profile.php">
-          <button type="submit">
-          <i class="fa fa-pencil-square-o"></i>
-          <p>Edit</p>
-          </button>
-          </form>
-          <form action="control.php" method='POST'>
-          <button type="submit" name='logout'>
-          <i class="far fa-sign-out"></i>
-          <p>Logout</p>
-          </button>
-          </form>
-          <button id='changePic'>
-          <i class='fa fa-picture-o' aria-hidden='true'></i>
-          <p>Edit Photos</p>
-          </button>
-        </div>
+<?php renderProfileActions('home'); ?>
         <div class='profpost'>
           <div class="postphoto">
             <h3>Post Photo</h3>
@@ -212,7 +177,7 @@ include "header.php";
             <option value="San Antonio">San Antonio</option>
             <option value="San Diego">San Diego</option>
             <option value="San Francisco">San Francisco</option>
-            <option value="Seattle">Seattle</option>videoFile
+            <option value="Seattle">Seattle</option>
             <option value="Tampa">Tampa</option>
             <option value="Toronto">Toronto</option>
             <option value="Vancouver">Vancouver</option>
