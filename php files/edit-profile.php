@@ -1,6 +1,6 @@
 <?php
-require_once 'control.php';
 require_once 'functions.php';
+require_once 'control.php';
 $title = "Edit Profile | Social Destinations";
 $activePage = 'profile';
 $city = 'Nashville';
