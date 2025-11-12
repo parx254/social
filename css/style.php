@@ -1,34 +1,104 @@
-/* ============================================
-   HIHI.CSS — Fully Modernized, Future-Proof Version
-   Enhancements: responsive units, dark mode, variables, accessibility
-============================================ */
 
-/* ===============================
-   LAYOUT VARIABLES
-=============================== */
 :root {
+  /* Back-compat variables from original file */
+  --background-dark-alt: #000;
+  --color-border-dark: #222;
+  --color-border-light: #333;
+  --color-border-mid: #aaa;
+  --color-like-active: #e63946;
+  --color-surface: #ffffff;
+  --color-surface-alt: #000;
+  --color-surface-inverse: #353E43;
+  --color-text-inverse: #ffffff;
+  --heading-accent: #FBF719;
+  --link-color: #4a90e2;
+  --link-hover: #FBF719;
+
   --base-font-size: 16px;
   --font-base: 1rem;
   --card-width: 20rem;
   --grid-gap: 1rem;
   --base-padding: 0.75rem;
   --base-margin: 1rem;
+  --base-radius: 0.75rem;
   --transition-base: all 0.15s cubic-bezier(.22,.61,.36,1);
+  --ease-smooth: cubic-bezier(.22,.61,.36,1);
+  --ease-emphasized: cubic-bezier(.2,0,0,1);
+  --ease-decel: cubic-bezier(0,0,.2,1);
+  --ease-accel: cubic-bezier(.4,0,1,1);
+  --motion-fast: 180ms;
+  --motion-base: 240ms;
+  --motion-slow: 420ms;
+  --text-primary: #1a1a1a;
+  --text-secondary: #3d3d3d;
+  --text-tertiary: #666666;
+  --text-muted: #8c8c8c;
+  --text-heading: #111111;
+  --text-inverse: #ffffff;
+  --text-disabled: #b3b3b3;
+  --text-footer: #5c5c5c;
+  --text-link: #4a90e2;
+  --text-link-hover: #357ab8;
+  --text-on-accent: #ffffff;
+  --background-page: #fefefe;
+  --background-light: #fafafa;
+  --background-alt: #f5f5f5;
+  --background-muted: #eaeaea;
+  --background-soft: #f9f9f9;
+  --background-dark: #000000;
+  --background-accent: #fbf719;
+  --background-profile: #f3f4f6;
+  --surface-1: #ffffff;
+  --surface-2: #fafafa;
+  --surface-3: #f5f5f5;
+  --surface-soft: #f4f4f4;
+  --surface-inverse: #353e43;
+  --surface-message-sent: #f9fbff;
+  --border-light: #dddddd;
+  --border-mid: #aaaaaa;
+  --border-dark: #222222;
+  --border-muted: #eeeeee;
+  --border-inverse: #ffffff;
+  --border-input: #cccccc;
+  --border-light-gray: #e0e0e0;
+  --button-primary-bg: #4a90e2;
+  --button-primary-hover: #357ab8;
+  --button-primary-text: #ffffff;
+  --button-secondary-bg: #1a1a1a;
+  --button-secondary-text: #ffffff;
+  --button-light-bg: #f5f5f5;
+  --button-light-hover: #eaeaea;
+  --button-light-text: #1a1a1a;
+  --button-disabled-bg: #dddddd;
+  --button-disabled-text: #888888;
+  --accent-primary: #4a90e2;
+  --accent-primary-hover: #357ab8;
+  --accent-danger: #e94e77;
+  --accent-success: #2ecc71;
+  --accent-warning: #ffb347;
+  --accent-like: #d32f2f;
+  --accent-like-hover: #b71c1c;
+  --alert-success-bg: #e8f6ee;
+  --alert-success-border: #c9ebd7;
+  --alert-danger-bg: #e94e77;
+  --alert-warning-bg: #ffb347;
+  --nav-bg: #ffffff;
+  --nav-border: #eaeaea;
+  --nav-text: #1a1a1a;
+  --shadow-color: rgba(0,0,0,0.15);
+  --shadow: 0 0.125rem 0.375rem rgba(0,0,0,0.18);
+  --focus-ring: #4a90e2;
 }
 
-/* ===============================
-   DARK MODE VARIABLES
-=============================== */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background-page: #111;
-    --color-text-primary: #f5f5f5;
-    --color-text-inverse: #111;
-    --color-background-light: #1c1c1c;
-    --color-border-light: #333;
+    --background-page: #111111;
+    --text-primary: #f5f5f5;
+    --text-inverse: #111111;
+    --background-light: #1c1c1c;
+    --border-light: #333333;
   }
 }
-
 /* ===============================
    UTILITY CLASSES
 =============================== */
@@ -44,173 +114,7 @@
 .visible { display: block; }
 .transition-base { transition: var(--transition-base); }
 
-/* ===============================
-   COLOR VARIABLES
-=============================== */
-:root {
-  --color-like-active: #e63946;
-  --color-text-inverse: #ffffff;
-  --color-button-primary: #4a90e2;
-  --color-button-primary-hover: #357ab8;
-  --color-background-page: #fefefe;
-  --color-background-light: #fafafa;
-  --color-background-alt: #f5f5f5;
-  --color-background-muted: #eaeaea;
-  --color-text-heading: #111;
-  --color-text-primary: #1a1a1a;
-  --color-text-secondary: #3d3d3d;
-  --color-text-tertiary: #666;
-  --color-text-muted: #8c8c8c;
-  --color-border-light: #ddd;
-  --color-border-dark: #222;
-  --color-border-mid: #aaa;
-  --color-background-dark: #000;
-  --color-success: #2ecc71;
-  --color-danger: #e94e77;
-  --color-warning: #ffb347;
-  --shadow-color: rgba(0,0,0,0.15);
-}
 
-/* ============================================
-   HIHI.CSS — Production-Ready, Optimized Version
-   Enhanced for maintainability, scalability, and performance
-============================================ */
-
-/* ===============================
-   VARIABLES & UTILITIES
-=============================== */
-:root {
-  --base-radius: 0.75rem;
-  --base-padding: 0.75rem;
-  --base-margin: 1.25rem;
-  --shadow: 0 0.125rem 0.375rem rgba(0,0,0,0.18);
-  --transition-base: all 0.15s cubic-bezier(.22,.61,.36,1);
-}
-
-/* ===============================
-   NAVIGATION
-=============================== */
-/* ============================================
-MAIN.CSS — Organized & Clean Version (Nov 2025)
-============================================ */
-/* ===== ROOT & VARIABLES ===== */
-/* ===============================
-SECTION: ROOT & VARIABLES
-=============================== */
-/* ===============================
-SECTION: GLOBAL RESETS & BASE
-=============================== */
-/* ===============================
-SECTION: TYPOGRAPHY
-=============================== */
-/* ===============================
-SECTION: NAVIGATION
-=============================== */
-/* ===============================
-SECTION: PROFILE & USER SECTIONS
-=============================== */
-/* ===============================
-SECTION: POSTS & FEEDS
-=============================== */
-/* ===============================
-SECTION: FORMS & INPUTS
-=============================== */
-/* ===============================
-SECTION: FOOTER
-=============================== */
-/* ===============================
-SECTION: ANIMATIONS & EFFECTS
-=============================== */
-/* ===============================
-SECTION: RESPONSIVE MEDIA QUERIES
-=============================== */
-:root {
-  /* ===== Motion & Easing (unchanged) ===== */
-  --ease-smooth: cubic-bezier(.22,.61,.36,1);
-  --ease-emphasized: cubic-bezier(.2,0,0,1);
-  --ease-decel: cubic-bezier(0,0,.2,1);
-  --ease-accel: cubic-bezier(.4,0,1,1);
-  --motion-fast: 180ms;
-  --motion-base: 240ms;
-  --motion-slow: 420ms;
-  /* ===== Headings ===== */
-  --heading-accent: #FBF719;
-  /* coral pop */
-  /* ===== Text ===== */
-  --text-primary: var(--color-text-primary);
-  /* near-black */
-  --text-secondary: var(--color-text-secondary);
-  /* dark gray */
-  --text-tertiary: var(--color-text-tertiary);
-  /* soft gray */
-  --text-muted: var(--color-text-muted);
-  /* muted */
-  --text-disabled: #b3b3b3;
-  /* disabled */
-  --text-footer: #5c5c5c;
-  /* footer gray */
-  --text-heading: var(--color-text-heading);
-  /* headings */
-  --text-inverse: var(--color-text-inverse);
-  /* var(--color-text-inverse) on dark */
-  --text-link: var(--color-button-primary);
-  /* trendy sky blue */
-  --text-on-accent: var(--color-text-inverse);
-  /* ===== Borders ===== */
-  --color-border-dark: var(--color-border-dark);
-  --color-border-mid: var(--color-border-mid);
-  --color-border-light: var(--color-border-light);
-  --color-border-muted: #eee;
-  --color-border-inverse: #fff;
-  /* ===== Surfaces ===== */
-  --color-surface: var(--color-text-inverse);
-  --color-surface-alt: var(--color-background-dark);
-  --color-surface-soft: #f4f4f4;
-  --color-surface-inverse: #353E43;
-  /* ===== Backgrounds ===== */
-  --background-page: var(--color-background-page);
-  --background-light: var(--color-background-light);
-  --background-alt: var(--color-background-alt);
-  --background-muted: var(--color-background-muted);
-  --background-soft: #f9f9f9;
-  --background-dark: var(--color-text-heading);
-  --background-accent: #FBF719;
-  /* coral trending color */
-  /* ===== Buttons ===== */
-  --button-primary-bg: var(--color-button-primary);
-  /* fresh blue */
-  --button-primary-hover: var(--color-button-primary-hover);
-  /* deeper hover */
-  --button-dark-bg: var(--color-text-primary);
-  --button-light-bg: var(--color-background-alt);
-  --button-outline-border: var(--color-button-primary);
-  --button-disabled-bg: var(--color-border-light);
-  --button-disabled-text: #888;
-  /* ===== Links & Navigation ===== */
-  --link-color: var(--color-button-primary);
-  --link-hover: #FBF719;
-  /* coral hover */
-  --nav-bg: var(--color-text-inverse);
-  --nav-border: var(--color-background-muted);
-  --nav-text: var(--color-text-primary);
-  /* ===== Accents & Effects ===== */
-  --accent-primary: var(--color-button-primary);
-  /* blue primary */
-  --accent-primary-hover: var(--color-button-primary-hover);
-  --accent-danger: var(--color-danger);
-  /* pink-red */
-  --accent-success: var(--color-success);
-  /* mint green */
-  --accent-warning: var(--color-warning);
-  /* warm orange */
-  --shadow-color: rgba(0, 0, 0, 0.15);
-  --focus-ring: var(--color-button-primary);
-  --background-dark-alt: var(--color-background-dark);
-  --background-profile: #f3f4f6;
-  --border-light-gray: #e0e0e0;
-  --accent-like: #d32f2f;
-  --accent-like-hover: #b71c1c;
-}
 *, footer ul {
   list-style: none;
   margin: 0;
@@ -1225,7 +1129,7 @@ outline: 0;
 box-shadow: 0 0.375rem 1.25rem rgba(0, 194, 203, 0.3);
 }
 .prof_section i {
-color: #fff;
+color: var(--text-inverse);
 font-size: 1.125rem;
 margin-right: 0.375rem;
 vertical-align: middle;
@@ -2993,4 +2897,45 @@ color: var(--color-like-active);
   background: #e8f6ee;
   color: #1e7a46;
   border: 0.0625rem solid #c9ebd7; /* 1px */
+}
+
+
+.message-card {
+    background: #fff;
+ border-radius: 0.5rem;
+padding: 0.875rem 1rem;
+    margin-bottom: .5rem;
+box-shadow: 0 0.125rem 0.375rem rgba(0,0,0,0.08);
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: .5rem;
+}
+
+.message-actions form {
+    display: inline-block;
+    margin-left: .5rem;
+}
+
+.message-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.message-body {
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.message-card.trash {
+    background: var(--background-soft);
+    opacity: 0.75;
+}
+
+.message-card.sent {
+    background: var(--surface-message-sent);
 }
