@@ -1,6 +1,6 @@
 <?php
-require_once 'control.php';
 require_once 'functions.php';
+require_once 'control.php';
 $title = "Message | Social Destinations";
 $activePage = 'message';
 $city = 'Nashville';
