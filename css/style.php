@@ -1032,9 +1032,11 @@ cell {
 .conversation-list {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
   padding: 0.375rem;
   margin: 1.5rem 0rem;
+}
+.conversation-item {
+  padding: 0.2rem;
 }
 .messages-container {
   max-width: 31.25rem;
@@ -2097,11 +2099,14 @@ about-list li {
   cursor: pointer;
   background: transparent;
   margin: 0.625rem 0;
-  color: white;
+  color: var(--text-inverse);
   -o-transition: all var(--motion-base) var(--ease-smooth);
   padding: 0.3125rem;
   transition: all var(--motion-base) var(--ease-smooth);
   -webkit-border-radius: 0.3125rem;
+}
+.editprofposts button{
+  background: var(--button-secondary-bg);
 }
 .editprofposts button:hover, .profpost button:hover {
   background: var(--button-primary-bg);
