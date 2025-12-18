@@ -1299,7 +1299,7 @@ input:hover[type="submit"] {
   border-radius: 50%;
   height: 8.75rem;
   box-shadow: 0 0.25rem 0.9375rem rgba(0, 0, 0, 0.2);
-  margin: -6.375rem auto 0.0625rem;
+  margin: -4.375rem auto 0.0625rem;
   opacity: 0.99 !important;
   width: 8.75rem;
   z-index: 1;
