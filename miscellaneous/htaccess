@@ -1,0 +1,33 @@
+RewriteEngine On
+RewriteBase /
+
+# --- SAFARI FIX: Explicitly allow Videos/ and thumbnails/ ---
+RewriteRule ^Videos/.*\.(mp4|webm|mov)$ - [L]
+RewriteRule ^thumbnails/.*\.(jpg|jpeg|png)$ - [L]
+
+# 🚫 FIRST: Allow real files & folders normally
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Remove .php extension from URLs (clean URLs)
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^([^/]+)/?$ $1.php [L]
+
+# Remove .php extension if typed in URL
+RewriteCond %{THE_REQUEST} \s/([^.]+)\.php[\s?] [NC]
+RewriteRule ^ %1 [R=301,L]
+
+# Route clean URLs into index.php ONLY IF it's not an actual file
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]
+
+# Correct MIME types for video
+AddType video/mp4 .mp4
+AddType video/mp4 .m4v
+AddType video/webm .webm
+AddType video/quicktime .mov
+AddType audio/aac .aac
+AddType audio/mp4 .m4a
