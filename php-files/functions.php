@@ -505,63 +505,6 @@ echo "<p><a href='profile.php?currentuser={$username}'>{$username}</a></p>";
 }
 }
 /* --------------------------------------------------------------------------
-FOLLOW COUNTS (Viewing Other User)
--------------------------------------------------------------------------- */
-function otherFollowees() {
-$con = db();
-$currentuser = $_GET['currentuser'] ?? '';
-if (!$currentuser) return;
-$stmt = $con->prepare("
-SELECT COUNT(*) AS followingCount
-FROM follows
-WHERE follower = (SELECT userID FROM users WHERE username = ?)
-");
-if (!$stmt) return;
-$stmt->bind_param("s", $currentuser);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($row = $result->fetch_assoc()) {
-$count = (int) $row['followingCount'];
-$currentuserEsc = htmlspecialchars($currentuser);
-echo "
-<div class='nums'>
-  <h5>
-  <a href='following.php?currentuser={$currentuserEsc}'>
-  {$count} Following
-</a>
-</h5>
-</div>";
-}
-$stmt->close();
-}
-function otherFollowers() {
-$con = db();
-$currentuser = $_GET['currentuser'] ?? '';
-if (!$currentuser) return;
-$stmt = $con->prepare("
-SELECT COUNT(*) AS followerCount
-FROM follows
-WHERE followee = (SELECT userID FROM users WHERE username = ?)
-");
-if (!$stmt) return;
-$stmt->bind_param("s", $currentuser);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($row = $result->fetch_assoc()) {
-$count = (int) $row['followerCount'];
-$currentuserEsc = htmlspecialchars($currentuser);
-echo "
-<div class='nums'>
-  <h5>
-  <a href='followers.php?currentuser={$currentuserEsc}'>
-  {$count} Followers
-</a>
-</h5>
-</div>";
-}
-$stmt->close();
-}
-/* --------------------------------------------------------------------------
 LIST ALL FOLLOWERS
 -------------------------------------------------------------------------- */
 function allfollows() {
@@ -2274,82 +2217,87 @@ exit;
 // ==========================
 // PROFILE FOLLOWER COUNT
 // ==========================
-function profileFollowers() {
-$con = db();
-// Logged-in username
-if (empty($_SESSION['username'])) {
-return;
+function profileFollowers(?string $username = null) {
+  $con = db();
+
+  $targetUser = $username ?? ($_SESSION['username'] ?? null);
+  if (!$targetUser) return;
+
+  $stmt = $con->prepare("
+    SELECT COUNT(f.follower) AS total
+    FROM follows f
+    INNER JOIN users u ON u.userID = f.followee
+    WHERE u.username = ?
+  ");
+  if (!$stmt) return;
+
+  $stmt->bind_param("s", $targetUser);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  $stmt->close();
+
+  if ($row = $result->fetch_assoc()) {
+    $count = (int)$row['total'];
+    $safeUser = htmlspecialchars($targetUser, ENT_QUOTES, 'UTF-8');
+
+    echo "
+      <div class='nums'>
+        <h5>
+          <a href='followers.php?currentuser={$safeUser}'>
+            {$count} Followers
+          </a>
+        </h5>
+      </div>
+    ";
+  }
 }
-$loggedInUser = $_SESSION['username'];
-// Count followers for this user's profile
-$stmt = $con->prepare("
-SELECT COUNT(follower) AS followerCount
-FROM follows
-WHERE followee = (
-SELECT userID FROM users WHERE username = ?
-)
-");
-if (!$stmt) {
-// do not break UI
-return;
-}
-$stmt->bind_param("s", $loggedInUser);
-$stmt->execute();
-$result = $stmt->get_result();
-$stmt->close();
-// Render output
-if ($row = $result->fetch_assoc()) {
-$count = (int)$row['followerCount'];
-$safeUser = htmlspecialchars($loggedInUser);
-echo "
-<div class='nums'>
-  <h5>
-  <a href='followers.php?currentuser={$safeUser}'>
-  {$count} Followers
-</a>
-</h5>
-</div>";
-}
-}
+
 // ==========================
 // PROFILE FOLLOWING COUNT
 // ==========================
-function profileFollowees() {
-$con = db();
-// Must be logged in
-if (empty($_SESSION['username'])) {
-return;
-}
-$loggedInUser = $_SESSION['username'];
-// Count how many users this person is following
-$stmt = $con->prepare("
-SELECT COUNT(followee) AS followingCount
-FROM follows
-WHERE follower = (
-SELECT userID FROM users WHERE username = ?
-)
-");
-if (!$stmt) {
-// silent fail → don't break UI
-return;
-}
-$stmt->bind_param("s", $loggedInUser);
-$stmt->execute();
-$result = $stmt->get_result();
-$stmt->close();
-if ($row = $result->fetch_assoc()) {
-$count = (int)$row['followingCount'];
-$safeUser = htmlspecialchars($loggedInUser);
-echo "
-<div class='nums'>
-  <h5>
-  <a href='following.php?currentuser={$safeUser}'>
-  {$count} Following
-</a>
-</h5>
-</div>
-";
-}
+function profileFollowees(?string $username = null) {
+  $con = db();
+
+  // Determine target user
+  if ($username) {
+    $targetUser = $username;
+  } elseif (!empty($_SESSION['username'])) {
+    $targetUser = $_SESSION['username'];
+  } else {
+    return;
+  }
+
+  // Count how many users this person is following
+  $stmt = $con->prepare("
+    SELECT COUNT(f.followee) AS followingCount
+    FROM follows f
+    INNER JOIN users u ON u.userID = f.follower
+    WHERE u.username = ?
+  ");
+
+  if (!$stmt) {
+    return;
+  }
+
+  $stmt->bind_param("s", $targetUser);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  $stmt->close();
+
+  if ($row = $result->fetch_assoc()) {
+    $count = (int)$row['followingCount'];
+    $safeUser = htmlspecialchars($targetUser, ENT_QUOTES, 'UTF-8');
+
+    echo "
+      <div class='nums'>
+        <h5>
+          <a href='following.php?currentuser={$safeUser}'>
+            {$count} Following
+          </a>
+        </h5>
+      </div>
+    ";
+  }
 }
 function otherprofile() {
 $con = db();
