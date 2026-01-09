@@ -21,7 +21,7 @@
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NBS5FHD" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <div id="wrapper">
-    <div class="bodycontainer">
+    <div class="body-container">
       <div class='profile-cover'>
         <img src="<?php currentcoverpic($currentuser);; ?>" alt='coverPic'>
       </div>
@@ -34,8 +34,8 @@
           <div class="section-title">
             <h5><?php echo $fname; ?> <?php echo $lname; ?></h5>
           </div>
-          <div class="followrow">
-            <div class="followrow">
+          <div class="follow-row">
+            <div class="follow-row">
               <div class='profile-followers'>
                 <?php profileFollowers($currentuser); ?>
               </div>
@@ -67,7 +67,7 @@
       </div>
     </div>
     <div class='profile-places-section'>
-      <div class="bodycontainer">
+      <div class="body-container">
         <div class="section-header">
           <div class="section-title">
             <h2>places visited</h2>
@@ -75,7 +75,6 @@
         </div>
         <ul id="profile-places-list">
           <?php otherplacesVisited(); ?>
-          <?php otherplacesVideoVisited(); ?>
         </ul>
       </div>
     </div>
