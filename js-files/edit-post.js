@@ -87,7 +87,6 @@ $(document).on("click", ".edit-post-btn", function (e) {
       action: "editPost",
       postID: postID,
     },
-    dataType: "json",
     success: function (response) {
       if (response && response.edithere) {
         $("#edit-container").html(response.edithere).fadeIn(200);
@@ -176,10 +175,18 @@ $(document).on("click", ".delete", function () {
       postID: postID
     },
     success: function (response) {
-      $("#post_" + postID).fadeOut(200, function () {
-        $(this).remove();
-      });
-    },
+  let data;
+  try {
+    data = typeof response === "string" ? JSON.parse(response) : response;
+  } catch (e) {
+    console.warn("Delete response not JSON, assuming success.");
+  }
+
+  $("#post_" + postID).fadeOut(200, function () {
+    $(this).remove();
+  });
+}
+,
     error: function (xhr, status, error) {
       alert("Error deleting post: " + error);
     }
