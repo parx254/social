@@ -68,7 +68,6 @@
       var city = "<?php echo addslashes($city); ?>";
     </script>
     <script src="/js/script.js"></script>
-    <script src="/js/edit-post.js"></script>
     <link rel="stylesheet" href="/css/updated.lightbox.css">
     <script src="/js/sd-lightbox.jquery.js" defer></script>
     <style>
