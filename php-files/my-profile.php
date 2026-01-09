@@ -1,6 +1,5 @@
 <?php
 require_once 'functions.php';
-require_once 'control.php';
 $currentuser = $_GET['currentuser'] ?? '';
 $userData = loadUserProfile($currentuser);
 $user = $userData['username'] ?? '';
@@ -19,7 +18,7 @@ include "header.php";
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NBS5FHD" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
 <div id="wrapper">
-  <div class="bodycontainer">
+  <div class="body-container">
     <div class="profile-cover">
       <img src="<?php mycurrentcoverpic(); ?>" alt="coverPic">
     </div>
@@ -32,7 +31,7 @@ include "header.php";
         <div class="section-title">
           <h5><?php echo htmlspecialchars($fname . ' ' . $lname); ?></h5>
         </div>
-        <div class="followrow">
+        <div class="follow-row">
           <div class="profile-followers">
             <?php profileFollowers(); ?>
           </div>
@@ -68,7 +67,7 @@ include "header.php";
     </div>
   </div>
   <div class="profile-places-section">
-    <div class="bodycontainer">
+    <div class="body-container">
       <div class="section-header">
         <div class="section-title">
           <h2>places visited</h2>
@@ -76,12 +75,12 @@ include "header.php";
       </div>
       <ul id="profile-places-list">
         <?php placesVisited(); ?>
-        <?php placesVideoVisited(); ?>
       </ul>
     </div>
   </div>
 </div>
 <?php include "footer.php"; ?>
+<script src="/js/edit-post.js"></script>
 <script src="js/post-form.js"></script>
 </body>
 </html>
