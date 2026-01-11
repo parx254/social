@@ -369,9 +369,9 @@ $row = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 $pic = $row['picName'] ?? '';
 if (!$pic) {
-return 'Images/prof_pics/default_prof.jpg';
+return 'images/prof_pics/default_prof.jpg';
 }
-return 'Images/prof_pics/' . htmlspecialchars($pic);
+return 'images/prof_pics/' . htmlspecialchars($pic);
 }
 function getLastMessagePreview(int $messageID): ?array {
 $con = db();
@@ -536,7 +536,7 @@ $pic = htmlspecialchars($row['picName'] ?: "default_prof.jpg");
 echo "
 <div class='follow'>
   <a href='profile.php?currentuser={$username}'>
-  <img src='Images/prof_pics/{$pic}' alt='{$username}'>
+  <img src='images/prof_pics/{$pic}' alt='{$username}'>
 </a>
 <a href='profile.php?currentuser={$username}'>{$username}</a>
 </div>";
@@ -575,7 +575,7 @@ $pic = htmlspecialchars($row['picName'] ?: "default_prof.jpg");
 echo "
 <div class='follow'>
   <a href='profile.php?currentuser={$username}'>
-  <img src='Images/prof_pics/{$pic}' alt='{$username}'>
+  <img src='images/prof_pics/{$pic}' alt='{$username}'>
 </a>
 <a href='profile.php?currentuser={$username}'>{$username}</a>
 </div>";
@@ -1774,7 +1774,7 @@ return;
 // Build new file name
 $newName = uniqid("prof_") . "." . $ext;
 // Final server path
-$uploadDir = __DIR__ . "/Images/prof_pics/";
+$uploadDir = __DIR__ . "/images/prof_pics/";
 if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 $targetPath = $uploadDir . $newName;
 // Move file
@@ -1808,9 +1808,9 @@ $result = $stmt->get_result();
 $stmt->close();
 if ($row = $result->fetch_assoc()) {
 $pic = $row['picName'] ?: "default_prof.jpg";
-echo "Images/prof_pics/" . htmlspecialchars($pic);
+echo "images/prof_pics/" . htmlspecialchars($pic);
 } else {
-echo "Images/prof_pics/default_prof.jpg";
+echo "images/prof_pics/default_prof.jpg";
 }
 }
 function coverPic() {
@@ -1828,7 +1828,7 @@ echo "Invalid file type.";
 return;
 }
 $newName = uniqid("cover_") . "." . $ext;
-$uploadDir = __DIR__ . "/Images/cover_pics/";
+$uploadDir = __DIR__ . "/images/cover_pics/";
 if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 $targetPath = $uploadDir . $newName;
 if (!move_uploaded_file($_FILES['Filename']['tmp_name'], $targetPath)) {
@@ -1855,7 +1855,7 @@ if (empty($currentuser)) {
 $currentuser = $_GET['currentuser'] ?? '';
 }
 if (empty($currentuser)) {
-echo "Images/prof_pics/default_prof.jpg";
+echo "images/prof_pics/default_prof.jpg";
 return;
 }
 $stmt = $con->prepare("
@@ -1869,9 +1869,9 @@ $result = $stmt->get_result();
 $stmt->close();
 if ($row = $result->fetch_assoc()) {
 $pic = $row['picName'] ?: "default_prof.jpg";
-echo "Images/prof_pics/" . htmlspecialchars($pic);
+echo "images/prof_pics/" . htmlspecialchars($pic);
 } else {
-echo "Images/prof_pics/default_prof.jpg";
+echo "images/prof_pics/default_prof.jpg";
 }
 }
 function currentcoverpic($currentuser = null) {
@@ -1880,7 +1880,7 @@ if (empty($currentuser)) {
 $currentuser = $_GET['currentuser'] ?? '';
 }
 if (empty($currentuser)) {
-echo "Images/cover_pics/default_cover.jpg";
+echo "images/cover_pics/default_cover.jpg";
 return;
 }
 $stmt = $con->prepare("
@@ -1894,9 +1894,9 @@ $result = $stmt->get_result();
 $stmt->close();
 if ($row = $result->fetch_assoc()) {
 $pic = $row['coverName'] ?: "default_cover.jpg";
-echo "Images/cover_pics/" . htmlspecialchars($pic);
+echo "images/cover_pics/" . htmlspecialchars($pic);
 } else {
-echo "Images/cover_pics/default_cover.jpg";
+echo "images/cover_pics/default_cover.jpg";
 }
 }
 // ==========================
@@ -1970,7 +1970,7 @@ exit;
 function mycurrentcoverpic() {
 // Ensure we know who is logged in
 if (empty($_SESSION['username'])) {
-echo "Images/cover_pics/default_cover.jpg";
+echo "images/cover_pics/default_cover.jpg";
 return;
 }
 $loggedUser = $_SESSION['username'];
@@ -1982,7 +1982,7 @@ FROM users
 WHERE username = ?
 ");
 if (!$stmt) {
-echo "Images/cover_pics/default_cover.jpg";
+echo "images/cover_pics/default_cover.jpg";
 return;
 }
 $stmt->bind_param("s", $loggedUser);
@@ -1992,9 +1992,9 @@ $stmt->close();
 // Determine output
 if ($row = $result->fetch_assoc()) {
 $pic = $row['coverName'] ?: "default_cover.jpg";
-echo "Images/cover_pics/" . htmlspecialchars($pic);
+echo "images/cover_pics/" . htmlspecialchars($pic);
 } else {
-echo "Images/cover_pics/default_cover.jpg";
+echo "images/cover_pics/default_cover.jpg";
 }
 }
 function removePhotos() {
@@ -3101,7 +3101,7 @@ $p = safe('default_prof.jpg');
 echo "
 <div class='post-title'>
   <a href='profile.php?currentuser={$u}'>
-  <img src='Images/prof_pics/{$p}' alt='{$u}' class='post-user-pic'>
+  <img src='images/prof_pics/{$p}' alt='{$u}' class='post-user-pic'>
 </a>
 <b>
 <a href='profile.php?currentuser={$u}'>@{$u}</a>
