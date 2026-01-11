@@ -8,7 +8,6 @@ session_start();
 global $con;
 global $user;
 require_once 'config.php';
-require_once 'control.php';
 // Namespace shortcuts
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -19,7 +18,7 @@ $user = $_SESSION['username'] ?? '';
 $currentuser = $currentuser ?? '';
 $currentlocation = $_GET['location'] ?? '';
 $currentcity = $_GET['city'] ?? '';
-$currentvideo = $_GET['videolocation'] ?? '';
+$currentvideo = $_GET['location'] ?? '';
 $currentpost = $_GET['postID'] ?? '';
 $currentcategory = $_GET['category'] ?? '';
 $search = $_GET['search'] ?? '';
@@ -31,7 +30,6 @@ $country = $_POST['country'] ?? '';
 $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
 $confirm_password = $_POST['confirm_password'] ?? '';
-$videolocation = $_POST['videolocation'] ?? '';
 $location = $_POST['location'] ?? '';
 $postID = $_POST['postID'] ?? '';
 $blog = $_POST['blog'] ?? '';
@@ -922,112 +920,192 @@ error_log("addPost() failed: " . $e->getMessage());
 return false;
 }
 }
-function addVideoPost($postID, $description, $videolocation, $videocategory, $videoFile) {
-global $con;
-/* ============================================
-CONFIG
-============================================= */
-$FFMPEG = "/home/dzx0rrb61cz9/ffmpeg/ffmpeg";
-$publicDir = "/home/dzx0rrb61cz9/public_html/videos/";
-$thumbDir  = "/home/dzx0rrb61cz9/public_html/thumbnails/";
-$publicURL = "videos/";
-$thumbURL  = "thumbnails/";
-if (!is_dir($publicDir)) mkdir($publicDir, 0775, true);
-if (!is_dir($thumbDir)) mkdir($thumbDir, 0775, true);
-/* ============================================
-VALIDATE TMP UPLOAD
-============================================= */
-$tmpFile = $videoFile['tmp_name'];
-if (!file_exists($tmpFile)) {
-error_log("addVideoPost ERROR: Temp upload file missing.");
-return false;
+function addVideoPost(int $postID, string $description, array $videoFile): bool
+{
+    $con = db();
+
+    // Validation
+    if ($postID <= 0) {
+        error_log("addVideoPost ERROR: invalid postID");
+        return false;
+    }
+
+    if (empty($videoFile['tmp_name']) || !is_uploaded_file($videoFile['tmp_name'])) {
+        error_log("addVideoPost ERROR: invalid upload tmp file");
+        return false;
+    }
+
+    // Paths
+    $root = rtrim((string)($_SERVER['DOCUMENT_ROOT'] ?? ''), '/');
+    if ($root === '') {
+        error_log("addVideoPost ERROR: DOCUMENT_ROOT missing");
+        return false;
+    }
+
+    $convWeb  = 'uploads/videos/converted';
+    $thumbWeb = 'uploads/videos/thumbnails';
+
+    $convDirAbs  = "$root/$convWeb";
+    $thumbDirAbs = "$root/$thumbWeb";
+
+    foreach ([$convDirAbs, $thumbDirAbs] as $dir) {
+        if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
+            error_log("addVideoPost ERROR: cannot create dir: $dir");
+            return false;
+        }
+    }
+
+    // Filenames
+    $origName = basename($videoFile['name'] ?? 'video.mp4');
+    $safeOrig = preg_replace('/[^A-Za-z0-9._-]/', '', $origName) ?: 'video.mp4';
+
+    $base      = uniqid('vid_', true);
+    $finalName = "$base.mp4";
+    $thumbName = "$base.jpg";
+
+    $finalPathAbs = "$convDirAbs/$finalName";
+    $thumbPathAbs = "$thumbDirAbs/$thumbName";
+
+    $finalPathWeb = "$convWeb/$finalName";
+    $thumbPathWeb = "$thumbWeb/$thumbName";
+
+    // Temporary raw file (system temp, not persisted)
+    $tmpRaw = sys_get_temp_dir() . '/' . uniqid('raw_', true);
+
+    if (!move_uploaded_file($videoFile['tmp_name'], $tmpRaw)) {
+        error_log("addVideoPost ERROR: failed to move temp upload");
+        return false;
+    }
+
+    // Insert DB row (processing)
+    $stmt = $con->prepare("
+        INSERT INTO videos
+        (filename, converted_path, thumbnail_path, description, postID, status)
+        VALUES (?, ?, ?, ?, ?, 'processing')
+    ");
+    if (!$stmt) {
+        unlink($tmpRaw);
+        error_log("addVideoPost ERROR: insert prepare failed: " . $con->error);
+        return false;
+    }
+
+    $stmt->bind_param(
+        "ssssi",
+        $safeOrig,
+        $finalPathWeb,
+        $thumbPathWeb,
+        $description,
+        $postID
+    );
+    $stmt->execute();
+    $stmt->close();
+
+    // Mark post as video
+    $stmt = $con->prepare("
+        UPDATE posts
+        SET postType = 'video', Last_Modified = NOW()
+        WHERE PostID = ?
+    ");
+    $stmt->bind_param("i", $postID);
+    $stmt->execute();
+    $stmt->close();
+
+    // FFmpeg
+    $ffmpeg = '/home/dzx0rrb61cz9/ffmpeg/ffmpeg';
+
+    $cmd =
+        escapeshellcmd($ffmpeg) .
+        ' -y -i ' . escapeshellarg($tmpRaw) .
+        ' -c:v libx264 -pix_fmt yuv420p -profile:v baseline -level 3.0' .
+        ' -movflags +faststart -preset veryfast -crf 23' .
+        ' -vf scale=1280:-2 -c:a aac -b:a 128k ' .
+        escapeshellarg($finalPathAbs) .
+        ' 2>&1';
+
+    exec($cmd, $out, $exitCode);
+
+    // Raw file is NEVER kept
+    unlink($tmpRaw);
+
+    if ($exitCode !== 0 || !file_exists($finalPathAbs)) {
+        error_log("addVideoPost ERROR: ffmpeg failed\n" . implode("\n", $out));
+
+        $stmt = $con->prepare("UPDATE videos SET status = 'failed' WHERE postID = ?");
+        $stmt->bind_param("i", $postID);
+        $stmt->execute();
+        $stmt->close();
+
+        return false;
+    }
+
+    // Thumbnail
+    $thumbCmd =
+        escapeshellcmd($ffmpeg) .
+        ' -y -ss 00:00:01 -i ' . escapeshellarg($finalPathAbs) .
+        ' -vframes 1 -vf scale=480:-1 ' .
+        escapeshellarg($thumbPathAbs) .
+        ' 2>&1';
+
+    exec($thumbCmd);
+
+    // Ready
+    $stmt = $con->prepare("UPDATE videos SET status = 'ready' WHERE postID = ?");
+    $stmt->bind_param("i", $postID);
+    $stmt->execute();
+    $stmt->close();
+
+    return true;
 }
-/* ============================================
-GENERATE FILENAMES
-============================================= */
-$origName  = basename($videoFile['name']);
-$cleanName = preg_replace("/[^A-Za-z0-9_\-.]/", "_", $origName);
-$base = uniqid("vid_") . "_" . $cleanName;
-$finalName = pathinfo($base, PATHINFO_FILENAME) . "_final.mp4";
-$thumbName = pathinfo($base, PATHINFO_FILENAME) . ".jpg";
-$finalPath = $publicDir . $finalName;
-$thumbPath = $thumbDir  . $thumbName;
-/* ============================================
-SAFARI-SAFE VIDEO CONVERSION
-============================================= */
-$cmd =
-"$FFMPEG -y -i '$tmpFile' " .
-"-vcodec libx264 -pix_fmt yuv420p " .
-"-acodec aac -b:a 128k " .
-"-movflags +faststart " .
-"-preset veryfast " .
-"-vf 'scale=1280:-2' " .
-"'$finalPath' 2>&1";
-$out = shell_exec($cmd);
-error_log("FFMPEG_CONVERT: $out");
-if (!file_exists($finalPath)) {
-error_log("addVideoPost ERROR: Conversion failed.");
-return false;
+
+
+function launchVideoProcessing(int $postID): void {
+    $php = PHP_BINARY;
+    $script = __DIR__ . '/process_video.php';
+
+    exec("$php $script $postID > /dev/null 2>&1 &");
 }
-/* ============================================
-DELETE TMP FILE (WE DO NOT KEEP ORIGINAL)
-============================================= */
-@unlink($tmpFile);
-/* ============================================
-THUMBNAIL GENERATION
-============================================= */
-$thumbCmd =
-"$FFMPEG -y -ss 1 -i '$finalPath' -frames:v 1 '$thumbPath' 2>&1";
-$thumbOut = shell_exec($thumbCmd);
-error_log("FFMPEG_THUMB: $thumbOut");
-if (!file_exists($thumbPath)) {
-error_log("addVideoPost ERROR: Thumbnail failed.");
-return false;
+
+
+
+function markVideoReady(int $postID): void {
+    $con = db();
+    $stmt = $con->prepare("
+        UPDATE videos
+        SET status = 'ready', error_message = NULL
+        WHERE postID = ?
+    ");
+    if ($stmt) {
+        $stmt->bind_param("i", $postID);
+        $stmt->execute();
+        $stmt->close();
+    }
 }
-/* ============================================
-URLS STORED IN DB
-============================================= */
-$convertedURL = $publicURL . $finalName;
-$thumbnailURL = $thumbURL . $thumbName;
-/* ============================================
-INSERT VIDEO RECORD
-============================================= */
-$stmt = $con->prepare("
-INSERT INTO videos (
-filepath,
-filename,
-original_path,
-converted_path,
-thumbnail_path,
-description,
-postID
-)
-VALUES (?, ?, NULL, ?, ?, ?, ?)
-");
-$stmt->bind_param(
-"sssssi",
-$finalPath,    // physical path
-$finalName,    // filename
-$convertedURL,
-$thumbnailURL,
-$description,
-$postID
-);
-$stmt->execute();
-$stmt->close();
-/* ============================================
-UPDATE POST METADATA
-============================================= */
-$stmt2 = $con->prepare("
-UPDATE posts
-SET videolocation = ?, videocategory = ?
-WHERE PostID = ?
-");
-$stmt2->bind_param("ssi", $videolocation, $videocategory, $postID);
-$stmt2->execute();
-$stmt2->close();
-return true;
+
+
+function runFFmpeg(array $video): bool {
+    $ffmpeg = '/usr/bin/ffmpeg';
+
+    $input  = escapeshellarg($video['filepath']);
+    $output = escapeshellarg(__DIR__ . '/videos/final/' . $video['postID'] . '.mp4');
+
+    $cmd = "$ffmpeg -y -i $input -vcodec libx264 -pix_fmt yuv420p -movflags +faststart $output 2>&1";
+
+    exec($cmd, $out, $code);
+
+    if ($code !== 0) {
+        file_put_contents(
+            __DIR__ . '/ffmpeg_errors.log',
+            implode("\n", $out),
+            FILE_APPEND
+        );
+        return false;
+    }
+
+    return true;
 }
+
+
+
 //show more posts
 //delete a post from page and DB
 // ============================================================
@@ -1096,177 +1174,188 @@ EDIT POST — loads the modal HTML
 ============================================================ */
 if (!function_exists('editPost')) {
 function editPost(): void {
-global $user, $con;
-// Start clean output buffer for clean JSON
-ob_clean();
-header_remove('Content-Type');
-header('Content-Type: application/json; charset=utf-8');
-if (empty($_POST['postID'])) {
-echo json_encode(['edithere' => 'Missing post ID.']);
-return;
-}
-$postID = intval($_POST['postID']);
-// Fetch post
-$stmt = $con->prepare("SELECT * FROM posts WHERE PostID = ?");
-$stmt->bind_param("i", $postID);
-$stmt->execute();
-$row = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-if (!$row) {
-echo json_encode(['edithere' => 'Cannot find post to edit!']);
-return;
-}
-// Detect video
-$isVideo = !empty($row['videolocation']) || !empty($row['videocategory']);
-$rawLocation = $isVideo ? ($row['videolocation'] ?? '') : ($row['Location'] ?? '');
-$rawCategory = $isVideo ? ($row['videocategory'] ?? '') : ($row['category'] ?? '');
-$location = htmlspecialchars($rawLocation);
-$category = htmlspecialchars($rawCategory);
-$blog = htmlspecialchars($row['Blog'] ?? '');
-$date_posted = date("F d, Y", strtotime($row['Last_Modified']));
-// Capture ALL HTML (including options) safely
-$html = '';
-ob_start();  // EVERYTHING echoed after this will be clean
-?>
-<div class='editprofile-posts'>
-  <form class='edit-post-form' method='POST'>
+    global $con;
 
-    <h3 class='edit-post-title'>
-      Edit Post from <?= htmlspecialchars($location) ?> on <?= $date_posted ?>
-    </h3>
+    // Clean JSON response
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json; charset=utf-8');
 
-    <div class='form-group'>
-      <textarea
-        name='blog'
-        maxlength='160'
-        placeholder='Type here...'
-        rows='10'
-        required
-      ><?= htmlspecialchars($blog) ?></textarea>
+    if (empty($_POST['postID'])) {
+        echo json_encode(['edithere' => 'Missing post ID.']);
+        exit;
+    }
+
+    $postID = (int)$_POST['postID'];
+
+    // Fetch post (ONLY required columns)
+    $stmt = $con->prepare("
+        SELECT Blog, Location, category, Last_Modified
+        FROM posts
+        WHERE PostID = ?
+        LIMIT 1
+    ");
+    $stmt->bind_param("i", $postID);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$row) {
+        echo json_encode(['edithere' => 'Cannot find post to edit!']);
+        exit;
+    }
+
+    $location = htmlspecialchars($row['Location'] ?? '');
+    $category = htmlspecialchars($row['category'] ?? '');
+    $blog     = htmlspecialchars($row['Blog'] ?? '');
+
+    $date_posted = '';
+    if (!empty($row['Last_Modified'])) {
+        $ts = strtotime($row['Last_Modified']);
+        if ($ts !== false) {
+            $date_posted = date("F d, Y", $ts);
+        }
+    }
+
+    // Capture HTML safely
+    ob_start();
+    ?>
+    <div class="editprofile-posts">
+        <form class="edit-post-form" method="POST">
+
+            <h3 class="edit-post-title">
+                Edit Post from <?= htmlspecialchars($location) ?> on <?= $date_posted ?>
+            </h3>
+
+            <div class="form-group">
+                <textarea
+                    name="blog"
+                    maxlength="160"
+                    rows="10"
+                    required><?= $blog ?></textarea>
+            </div>
+
+            <div class="form-group">
+                <i class="far fa-globe"></i>
+                <select name="location" required>
+                    <?php renderLocationOptions($location); ?>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <i class="far fa-tag"></i>
+                <select name="category" required>
+                    <?php renderCategoryOptions($category); ?>
+                </select>
+            </div>
+
+            <input type="hidden" name="postID" value="<?= $postID ?>">
+            <input type="hidden" name="action" value="updatePost">
+
+            <div class="edit-buttons">
+                <button type="submit" class="edit-post-form-submit">
+                    <i class="fa fa-refresh"></i> Save
+                </button>
+                <button type="button" class="cancel-edit">
+                    <i class="far fa-times"></i> Cancel
+                </button>
+            </div>
+
+        </form>
     </div>
+    <?php
 
-    <div class='form-group'>
-      <i class='far fa-globe'></i>
-      <select name='location' required>
-        <option class='placeholder' disabled>Select Location</option>
-        <?php renderLocationOptions($location); ?>
-      </select>
-    </div>
-
-    <div class='form-group'>
-      <i class='far fa-tag'></i>
-      <select name='category' required>
-        <option class='placeholder' disabled>Select Category</option>
-        <?php renderCategoryOptions($category); ?>
-      </select>
-    </div>
-
-    <input type='hidden' name='postID' value='<?= $postID ?>'>
-    <input type='hidden' name='action' value='updatePost'>
-
-    <div class='edit-buttons'>
-      <button type='submit' class='edit-post-form-submit'>
-        <i class='fa fa-refresh'></i> Save
-      </button>
-
-      <button type='button' class='cancel-edit'>
-        <i class='far fa-times'></i> Cancel
-      </button>
-    </div>
-
-  </form>
-</div>
-
-<?php
-$html = ob_get_clean();
-echo json_encode(['edithere' => $html]);
+    echo json_encode([
+        'edithere' => ob_get_clean()
+    ]);
+    exit;
 }
 }
+
 /* ============================================================
 UPDATE POST — handles saving via AJAX
 ============================================================ */
 function updatePost() {
-global $con, $user;
-// Clean slate for JSON
-ob_clean();
-header_remove('Content-Type');
-header('Content-Type: application/json; charset=utf-8');
-/* ---------------------------------------
-Validate input
---------------------------------------- */
-$postID   = intval($_POST['postID']   ?? 0);
-$blog     = trim($_POST['blog']       ?? '');
-$location = trim($_POST['location']   ?? '');
-$category = trim($_POST['category']   ?? '');
-if ($postID <= 0 || $blog === '' || $location === '' || $category === '') {
-echo json_encode([
-'status'  => 'error',
-'message' => 'Missing or invalid data.'
-]);
-return;
+    global $con;
+
+    ob_clean();
+    header('Content-Type: application/json; charset=utf-8');
+
+    $postID   = (int)($_POST['postID'] ?? 0);
+    $blog     = trim($_POST['blog'] ?? '');
+    $location = trim($_POST['location'] ?? '');
+    $category = trim($_POST['category'] ?? '');
+
+    if ($postID <= 0 || $blog === '' || $location === '' || $category === '') {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Missing or invalid data.'
+        ]);
+        return;
+    }
+
+    /* ---------------------------------------
+       Detect post type CORRECTLY
+    --------------------------------------- */
+    $stmt = $con->prepare("
+        SELECT postType
+        FROM posts
+        WHERE PostID = ?
+        LIMIT 1
+    ");
+    if (!$stmt) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Database prepare failed'
+        ]);
+        return;
+    }
+
+    $stmt->bind_param("i", $postID);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$row) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Post not found'
+        ]);
+        return;
+    }
+
+    /* ---------------------------------------
+       ONE update path (videos + photos)
+    --------------------------------------- */
+    $stmt = $con->prepare("
+        UPDATE posts
+        SET
+            Blog = ?,
+            Location = ?,
+            category = ?,
+            Last_Modified = NOW()
+        WHERE PostID = ?
+    ");
+
+    if (!$stmt) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Database prepare failed'
+        ]);
+        return;
+    }
+
+    $stmt->bind_param("sssi", $blog, $location, $category, $postID);
+    $success = $stmt->execute();
+    $stmt->close();
+
+    echo json_encode([
+        'status'  => $success ? 'success' : 'error',
+        'message' => $success ? 'Post updated successfully!' : 'Update failed'
+    ]);
 }
-/* ---------------------------------------
-Check POST type (video or photo)
---------------------------------------- */
-$stmt = $con->prepare("
-SELECT videolocation, videocategory
-FROM posts
-WHERE PostID = ?
-");
-if (!$stmt) {
-echo json_encode([
-'status'  => 'error',
-'message' => 'Database prepare error: ' . $con->error
-]);
-return;
-}
-$stmt->bind_param("i", $postID);
-$stmt->execute();
-$videoCheck = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-$isVideo = !empty($videoCheck['videolocation']) || !empty($videoCheck['videocategory']);
-/* ---------------------------------------
-Build correct UPDATE statement
---------------------------------------- */
-if ($isVideo) {
-$query = "
-UPDATE posts
-SET Blog = ?, videolocation = ?, videocategory = ?, Last_Modified = NOW()
-WHERE PostID = ?
-";
-} else {
-$query = "
-UPDATE posts
-SET Blog = ?, Location = ?, category = ?, Last_Modified = NOW()
-WHERE PostID = ?
-";
-}
-$stmt = $con->prepare($query);
-if (!$stmt) {
-echo json_encode([
-'status'  => 'error',
-'message' => 'Database prepare error: ' . $con->error
-]);
-return;
-}
-$stmt->bind_param("sssi", $blog, $location, $category, $postID);
-$success = $stmt->execute();
-$stmt->close();
-/* ---------------------------------------
-Final JSON response
---------------------------------------- */
-if ($success) {
-echo json_encode([
-'status'  => 'success',
-'message' => 'Post updated successfully!'
-]);
-} else {
-echo json_encode([
-'status'  => 'error',
-'message' => 'Database update failed.'
-]);
-}
-}
+
 function editno() {
 header("location: my-profile");
 }
@@ -1316,32 +1405,7 @@ $stmt->close();
 echo "Error: " . $con->error . "\n";
 }
 }
-function placesVideoVisited() {
-global $user;
-global $con;
-$stmt = $con->prepare("SELECT DISTINCT videolocation FROM posts WHERE userID = (SELECT userID FROM users WHERE username = ?) AND TRIM(videolocation) <> ''");
-if ($stmt) {
-$stmt->bind_param("s", $user);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($result && $result->num_rows > 0) {
-while ($row = $result->fetch_assoc()) {
-$videoLocation = trim($row['videolocation']);
-if ($videoLocation !== "") {
-echo "
-<li class='placesvisited'>
-  <a href='" . str_replace(" ", "-", htmlspecialchars($videoLocation)) . "'>" . htmlspecialchars($videoLocation) . "</a>
-</li>";
-}
-}
-} else {
-echo "You haven't post any videos yet!";
-}
-$stmt->close();
-} else {
-echo "Error: " . $con->error . "\n";
-}
-}
+
 function otherplacesVisited() {
 global $user;
 global $con;
@@ -1369,35 +1433,7 @@ $stmt->close();
 echo "Error: " . $con->error . "\n";
 }
 }
-function otherplacesVideoVisited() {
-global $user;
-global $con;
-global $currentuser;
-$sql = "SELECT DISTINCT videolocation
-FROM posts
-WHERE userID = (SELECT userID FROM users WHERE username = '$currentuser')
-AND TRIM(videolocation) <> ''";
-$result = $con->query($sql);
-if (!$result) {
-echo "Error: " . $con->error . "\n";
-return;
-}
-if ($result->num_rows > 0) {
-while ($row = $result->fetch_assoc()) {
-$videoLocation = trim($row['videolocation']);
-if ($videoLocation !== "") {
-echo "
-<li class='placesvisited'>
-  <a href='" . str_replace(" ", "-", htmlspecialchars($videoLocation)) . "'>"
-  . htmlspecialchars($videoLocation) .
-  "</a>
-</li>";
-}
-}
-} else {
-echo "";
-}
-}
+
 function profile() {
 global $user;
 $con = db(); // use shared DB helper
@@ -2922,73 +2958,130 @@ RENDER videos FOR A POST
 =============================== */
 if (!function_exists('renderMediaVideos')) {
 function renderMediaVideos(int $postID): void {
-global $con;
-echo "
-<div class='post-contenttop'>
-  ";
-  if (!$con) {
-  echo "
-</div>";
-return;
-}
-/* ============================================
-FETCH VIDEO RECORD
-============================================= */
-$stmt = $con->prepare("
-SELECT converted_path, thumbnail_path
-FROM videos
-WHERE postID = ?
-LIMIT 1
-");
-$stmt->bind_param("i", $postID);
-$stmt->execute();
-$res = $stmt->get_result();
-$v = $res->fetch_assoc();
-$stmt->close();
-if (!$v) {
-echo "
-</div>";
-return; // no video for this post
-}
-/* ============================================
-SANITIZE URLS
-============================================= */
-$videoURL = safe($v['converted_path']);
-$thumbURL = safe($v['thumbnail_path']);
-if ($videoURL === '' || $thumbURL === '') {
-echo "
-</div>";
-return;
-}
-/* ============================================
-SAFETY CHECK (FILE EXISTS UNDER DOC ROOT)
-============================================= */
-$absVideoPath = $_SERVER['DOCUMENT_ROOT'] . "/" . $videoURL;
-if (!file_exists($absVideoPath)) {
-error_log("renderMediaVideos ERROR: Video file missing → $absVideoPath");
-echo "
-</div>";
-return;
-}
-/* ============================================
-OUTPUT VIDEO PLAYER (NO AUTOPLAY)
-============================================= */
-echo "
-<div class='post-video'>
-  <video
-  controls
-  playsinline
-  preload='metadata'
-  poster='/$thumbURL'
-  >
-  <source src='/$videoURL' type='video/mp4'>
-  Your browser does not support HTML5 video.
-</video>
-</div>
-";
-echo "
-</div>";
+    global $con;
+
+    echo "<div class='post-contenttop'>";
+
+    if (!$con) {
+        echo "</div>";
+        return;
+    }
+
+    $stmt = $con->prepare("
+        SELECT converted_path, thumbnail_path, status
+        FROM videos
+        WHERE postID = ?
+        LIMIT 1
+    ");
+    $stmt->bind_param("i", $postID);
+    $stmt->execute();
+    $v = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$v) {
+        echo "</div>";
+        return;
+    }
+
+    // Treat NULL as processing
+    if (($v['status'] ?? 'processing') === 'processing') {
+        echo "
+            <div class='post-video video-processing' data-postid='{$postID}'>
+                Processing video…
+            </div>
+        ";
+        echo "</div>";
+        return;
+    }
+
+    if ($v['status'] === 'failed') {
+        echo "
+            <div class='post-video video-failed'>
+                Video processing failed.
+            </div>
+        ";
+        echo "</div>";
+        return;
+    }
+
+    // Guard: ONLY ready can proceed
+    if ($v['status'] !== 'ready') {
+        echo "
+            <div class='post-video video-processing'>
+                Processing video…
+            </div>
+        ";
+        echo "</div>";
+        return;
+    }
+
+    $videoURL = safe($v['converted_path']);
+    $thumbURL = safe($v['thumbnail_path']);
+
+    if ($videoURL === '' || $thumbURL === '') {
+        echo "</div>";
+        return;
+    }
+
+    $absVideoPath = $_SERVER['DOCUMENT_ROOT'] . "/" . $videoURL;
+    if (!file_exists($absVideoPath)) {
+        error_log("renderMediaVideos ERROR: Video file missing → $absVideoPath");
+        echo "</div>";
+        return;
+    }
+
+    echo "
+        <div class='post-video'>
+            <video
+                controls
+                playsinline
+                preload='metadata'
+                poster='/$thumbURL'
+            >
+                <source src='/$videoURL' type='video/mp4'>
+                Your browser does not support HTML5 video.
+            </video>
+        </div>
+    ";
+
+    echo "</div>";
 }}
+
+
+
+function renderEditPostHTML(int $postID): string {
+    ob_start();
+    // existing editPost() HTML here
+    renderEditPost($postID);
+    return ob_get_clean();
+}
+
+function getVideoStatus(int $postID): string {
+    $con = db();
+    $stmt = $con->prepare("
+        SELECT status
+        FROM videos
+        WHERE postID = ?
+        LIMIT 1
+    ");
+    $stmt->bind_param("i", $postID);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    return $row['status'] ?? 'unknown';
+}
+
+function updatePostData(int $postID, string $blog, string $location, string $category): bool {
+    $con = db();
+    $stmt = $con->prepare("
+        UPDATE posts
+        SET Blog = ?, Location = ?, category = ?, Last_Modified = NOW()
+        WHERE PostID = ?
+    ");
+    $stmt->bind_param("sssi", $blog, $location, $category, $postID);
+    return $stmt->execute();
+}
+
+
 /* ===============================
 RENDER USER HEADER (avatar + link)
 =============================== */
@@ -3086,103 +3179,112 @@ RENDER A SINGLE POST FOR AJAX
 =============================== */
 if (!function_exists('renderSinglePost')) {
 function renderSinglePost(int $postID): string {
-global $con;
-/* ================================================
-FETCH CORE POST DATA
-================================================= */
-$stmt = $con->prepare("
-SELECT
-p.PostID,
-p.Blog,
-p.Location,
-p.videolocation,
-p.category,
-p.videocategory,
-p.Last_Modified,
-u.username,
-u.picName,
-COALESCE(l.like_count, 0) AS likes,
-(SELECT COUNT(*) FROM images WHERE postID = p.PostID) AS imageCount,
-(SELECT COUNT(*) FROM videos WHERE postID = p.PostID) AS videoCount
-FROM posts p
-JOIN users u ON u.userID = p.userID
-LEFT JOIN (
-SELECT post_id, COUNT(*) AS like_count
-FROM post_likes GROUP BY post_id
-) l ON l.post_id = p.PostID
-WHERE p.PostID = ?
-LIMIT 1
-");
-$stmt->bind_param("i", $postID);
-$stmt->execute();
-$post = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-if (!$post) return "";
-/* ===============================================
-MEDIA FLAGS
-================================================ */
-$hasVideo = ((int)$post['videoCount']) > 0;
-$hasPhoto = ((int)$post['imageCount']) > 0;
-/* ===============================================
-CLEAN VALUES
-================================================ */
-$username = $post['username'];
-$pic = $post['picName'] ?: "default_prof.jpg";
-$location = safe($hasVideo ? $post['videolocation'] : $post['Location']);
-$category = safe($hasVideo ? $post['videocategory'] : $post['category']);
-$blog     = sd_safe_text($post['Blog']);
-$likes    = (int)$post['likes'];
-$date     = date("F d, Y", strtotime($post['Last_Modified']));
-/* ===============================================
-OWNER ACTION BUTTONS
-================================================ */
-$actions = "";
-if (isset($_SESSION['username']) && $_SESSION['username'] === $username) {
-$actions = "
-<button class='edit-post-btn' data-postid='{$postID}'><i class='far fa-edit'></i></button>
-<button class='delete' data-postid='{$postID}'><i class='far fa-trash'></i></button>
-";
+    global $con;
+
+    $stmt = $con->prepare("
+        SELECT
+            p.PostID,
+            p.Blog,
+            p.Location,
+            p.category,
+            p.Last_Modified,
+            u.username,
+            u.picName,
+            COALESCE(l.like_count, 0) AS likes,
+            (SELECT COUNT(*) FROM images WHERE postID = p.PostID) AS imageCount,
+            (SELECT COUNT(*) FROM videos WHERE postID = p.PostID) AS videoCount
+        FROM posts p
+        JOIN users u ON u.userID = p.userID
+        LEFT JOIN (
+            SELECT post_id, COUNT(*) AS like_count
+            FROM post_likes
+            GROUP BY post_id
+        ) l ON l.post_id = p.PostID
+        WHERE p.PostID = ?
+        LIMIT 1
+    ");
+    $stmt->bind_param("i", $postID);
+    $stmt->execute();
+    $post = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$post) return "";
+
+    /* -----------------------------
+       MEDIA FLAGS (authoritative)
+    ----------------------------- */
+    $videoCount = (int)($post['videoCount'] ?? 0);
+    $imageCount = (int)($post['imageCount'] ?? 0);
+
+    $hasVideo = ($videoCount > 0);
+    $hasPhoto = ($imageCount > 0);
+
+    /* -----------------------------
+       SAFE DATE
+    ----------------------------- */
+    $date = "";
+    if (!empty($post['Last_Modified'])) {
+        $ts = strtotime($post['Last_Modified']);
+        if ($ts !== false) {
+            $date = date("F d, Y", $ts);
+        }
+    }
+
+    /* -----------------------------
+       CLEAN VALUES
+    ----------------------------- */
+    $username = (string)($post['username'] ?? '');
+    $pic      = !empty($post['picName']) ? (string)$post['picName'] : "default_prof.jpg";
+
+    $location = safe($post['Location'] ?? '');
+    $category = safe($post['category'] ?? '');
+    $blog     = sd_safe_text($post['Blog'] ?? '');
+    $likes    = (int)($post['likes'] ?? 0);
+
+    /* -----------------------------
+       OWNER ACTIONS
+    ----------------------------- */
+    $actions = "";
+    if (!empty($_SESSION['username']) && $_SESSION['username'] === $username) {
+        $actions = "
+            <button class='edit-post-btn' data-postid='{$postID}'><i class='far fa-edit'></i></button>
+            <button class='delete' data-postid='{$postID}'><i class='far fa-trash'></i></button>
+        ";
+    }
+
+    ob_start();
+
+    echo "<div class='post-content' id='post_{$postID}'>";
+
+    // MEDIA (video > photo)
+    if ($hasVideo && function_exists('renderMediaVideos')) {
+        renderMediaVideos($postID);
+    } elseif ($hasPhoto && function_exists('renderMediaImages')) {
+        renderMediaImages($postID);
+    }
+
+    // DETAILS
+    if (function_exists('renderPostDetails')) {
+        renderPostDetails(
+            $date,
+            $location,
+            $category,
+            $blog,
+            $postID,
+            $likes,
+            null,
+            $actions
+        );
+    }
+
+    echo "</div>";
+
+    return ob_get_clean();
 }
-/* ===============================================
-BEGIN BUFFER
-================================================ */
-ob_start();
-echo "
-<div class='post-content' id='post_{$postID}'>
-  ";
-  /* ===============================================
-  MEDIA RENDERING (video > photo)
-  ================================================ */
-  if ($hasVideo && function_exists('renderMediaVideos')) {
-  renderMediaVideos($postID);
-  } elseif ($hasPhoto && function_exists('renderMediaImages')) {
-  renderMediaImages($postID);
-  }
-  /* ===============================================
-  USER HEADER
-  ================================================ */
-/*  if (function_exists('renderUserHeader')) {
-  renderUserHeader($username, $pic);
-  } */
-  /* ===============================================
-  DETAILS (date, location, category, blog, likes)
-  ================================================ */
-  if (function_exists('renderPostDetails')) {
-  renderPostDetails(
-  $date,
-  $location,
-  $category,
-  $blog,
-  $postID,
-  $likes,
-  null,     // leave null so renderLikeButton can detect it
-  $actions
-  );
-  }
-  echo "
-</div>"; // wrapper end
-return ob_get_clean();
-}}
+}
+
+
+
 // ====================================================================
 // PROFILE: CURRENT USER POSTS (photos)
 // ====================================================================
@@ -3210,6 +3312,7 @@ FROM post_likes
 GROUP BY post_id
 ) l ON l.post_id = p.PostID
 WHERE p.userID = (SELECT userID FROM users WHERE username = ?)
+AND p.postType = 'photo'
 AND p.category IN ('stays','events','eats','adventures','vibes')
 ORDER BY p.Last_Modified DESC
 ");
@@ -3260,69 +3363,90 @@ $stmt->close();
 // ====================================================================
 if (!function_exists('allVideoPosts')) {
 function allVideoPosts(): void {
-global $user, $con;
-$stmt = $con->prepare("
-SELECT
-p.PostID,
-p.Blog,
-p.videolocation,
-p.videocategory,
-p.Last_Modified,
-u.username,
-u.picName,
-COALESCE(l.like_count, 0) AS likes
-FROM posts p
-JOIN users u ON u.userID = p.userID
-LEFT JOIN (
-SELECT post_id, COUNT(*) AS like_count
-FROM post_likes
-GROUP BY post_id
-) l ON l.post_id = p.PostID
-WHERE p.userID = (SELECT userID FROM users WHERE username = ?)
-AND p.videocategory IN ('stays','eats','events','adventures','vibes')
-ORDER BY p.Last_Modified DESC
-");
-$stmt->bind_param("s", $user);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($result->num_rows === 0) {
-renderEmptyFeed("No videos posted yet!");
-$stmt->close();
-return;
-}
-while ($row = $result->fetch_assoc()) {
-$postID   = (int)$row['PostID'];
-$username = (string)$row['username'];
-$pic      = !empty($row['picName'])
-? (string)$row['picName']
-: (defined('DEFAULT_PROF') ? DEFAULT_PROF : 'default_prof.jpg');
-$likes    = (int)$row['likes'];
-$date = date("F d, Y", strtotime($row['Last_Modified']));
-$city = $row['videolocation'] ?? '';
-$cat  = $row['videocategory'] ?? '';
-$blog = sd_safe_text($row['Blog']);
-$actionsHtml = "
-<form method='POST' action='control.php'>
-  <input type='hidden' name='postID' value='{$postID}'>
-  <button type='button' class='edit-post-btn' data-postid='{$postID}' title='Edit'>
-  <i class='far fa-edit'></i>
-</button>
-<button type='button' class='delete' data-postid='{$postID}' title='Delete'>
-<i class='far fa-trash'></i>
-</button>
-</form>
-";
-echo "
-<div class='post-content' id='post_$postID'>
-  ";
-  renderMediaVideos($postID);
-  renderPostDetails($date, $city, $cat, $blog, $postID, $likes, null, $actionsHtml);
-  echo "
-</div>";
-}
-$stmt->close();
-}
-}
+  global $user, $con;
+
+  $stmt = $con->prepare("
+    SELECT
+      p.PostID,
+      p.Blog,
+      p.location,
+      p.category,
+      p.Last_Modified,
+      u.username,
+      u.picName,
+      COALESCE(l.like_count, 0) AS likes
+    FROM posts p
+    JOIN users u ON u.userID = p.userID
+    LEFT JOIN (
+      SELECT post_id, COUNT(*) AS like_count
+      FROM post_likes
+      GROUP BY post_id
+    ) l ON l.post_id = p.PostID
+    WHERE p.userID = (SELECT userID FROM users WHERE username = ?)
+      AND p.postType = 'video'
+      AND p.category IN ('stays','eats','events','adventures','vibes')
+    ORDER BY p.Last_Modified DESC
+  ");
+
+  $stmt->bind_param("s", $user);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($result->num_rows === 0) {
+    renderEmptyFeed("No videos posted yet!");
+    $stmt->close();
+    return;
+  }
+
+  while ($row = $result->fetch_assoc()) {
+
+    $postID   = (int)$row['PostID'];
+    $username = (string)$row['username'];
+    $pic      = !empty($row['picName'])
+      ? (string)$row['picName']
+      : (defined('DEFAULT_PROF') ? DEFAULT_PROF : 'default_prof.jpg');
+
+    $likes = (int)$row['likes'];
+    $date  = date("F d, Y", strtotime($row['Last_Modified']));
+    $city  = safe($row['location']);
+    $cat   = safe($row['category']);
+    $blog  = sd_safe_text($row['Blog']);
+
+    $actionsHtml = "
+      <form method='POST' action='control.php'>
+        <input type='hidden' name='postID' value='{$postID}'>
+        <button type='button' class='edit-post-btn' data-postid='{$postID}' title='Edit'>
+          <i class='far fa-edit'></i>
+        </button>
+        <button type='button' class='delete' data-postid='{$postID}' title='Delete'>
+          <i class='far fa-trash'></i>
+        </button>
+      </form>
+    ";
+
+    echo "<div class='post-content' id='post_{$postID}'>";
+
+    if (function_exists('renderMediaVideos')) {
+      renderMediaVideos($postID);
+    }
+
+    renderPostDetails(
+      $date,
+      $city,
+      $cat,
+      $blog,
+      $postID,
+      $likes,
+      null,
+      $actionsHtml
+    );
+
+    echo "</div>";
+  }
+
+  $stmt->close();
+}}
+
 // ====================================================================
 // GLOBAL FEED — All Users' Posts (photos)
 // ====================================================================
@@ -3402,6 +3526,7 @@ FROM post_likes
 GROUP BY post_id
 ) l ON l.post_id = p.PostID
 WHERE p.category IN ('stays','eats','events','adventures','vibes')
+AND p.postType = 'photo'
 AND p.userID IN (
 SELECT followee FROM follows
 WHERE follower = (SELECT userID FROM users WHERE username = ?)
@@ -3444,62 +3569,86 @@ $stmt->close();
 // ====================================================================
 if (!function_exists('myvideofeed')) {
 function myvideofeed(): void {
-global $user, $con;
-$stmt = $con->prepare("
-SELECT
-p.PostID,
-p.Blog,
-p.videolocation,
-p.videocategory,
-p.Last_Modified,
-u.username,
-u.picName,
-COALESCE(l.like_count, 0) AS likes
-FROM posts p
-JOIN users u ON p.userID = u.userID
-LEFT JOIN (
-SELECT post_id, COUNT(*) AS like_count
-FROM post_likes
-GROUP BY post_id
-) l ON l.post_id = p.PostID
-WHERE p.videocategory IN ('stays','eats','events','adventures','vibes')
-AND p.userID IN (
-SELECT followee FROM follows
-WHERE follower = (SELECT userID FROM users WHERE username = ?)
-)
-ORDER BY p.Last_Modified DESC
-");
-$stmt->bind_param('s', $user);
-$stmt->execute();
-$res = $stmt->get_result();
-if ($res->num_rows === 0) {
-renderEmptyFeed("No videos from people you follow yet.");
-$stmt->close();
-return;
-}
-while ($row = $res->fetch_assoc()) {
-$postID   = (int)$row['PostID'];
-$username = (string)$row['username'];
-$pic      = !empty($row['picName'])
-? (string)$row['picName']
-: 'default_prof.jpg';
-$likes    = (int)$row['likes'];
-$date = date("F d, Y", strtotime($row['Last_Modified']));
-$city = $row['videolocation'] ?? '';
-$cat  = $row['videocategory'] ?? '';
-$blog = sd_safe_text($row['Blog']);
-echo "
-<div class='post-content'>
-  ";
-  renderMediaVideos($postID);
-  renderUserHeader($username, $pic);
-  renderPostDetails($date, $city, $cat, $blog, $postID, $likes);
-  echo "
-</div>";
-}
-$stmt->close();
-}
-}
+  global $user, $con;
+
+  $stmt = $con->prepare("
+    SELECT
+      p.PostID,
+      p.Blog,
+      p.location,
+      p.category,
+      p.Last_Modified,
+      u.username,
+      u.picName,
+      COALESCE(l.like_count, 0) AS likes
+    FROM posts p
+    JOIN users u ON p.userID = u.userID
+    LEFT JOIN (
+      SELECT post_id, COUNT(*) AS like_count
+      FROM post_likes
+      GROUP BY post_id
+    ) l ON l.post_id = p.PostID
+    WHERE p.postType = 'video'
+      AND p.category IN ('stays','eats','events','adventures','vibes')
+      AND p.userID IN (
+        SELECT followee
+        FROM follows
+        WHERE follower = (
+          SELECT userID FROM users WHERE username = ?
+        )
+      )
+    ORDER BY p.Last_Modified DESC
+  ");
+
+  $stmt->bind_param('s', $user);
+  $stmt->execute();
+  $res = $stmt->get_result();
+
+  if ($res->num_rows === 0) {
+    renderEmptyFeed("No videos from people you follow yet.");
+    $stmt->close();
+    return;
+  }
+
+  while ($row = $res->fetch_assoc()) {
+
+    $postID   = (int)$row['PostID'];
+    $username = (string)$row['username'];
+    $pic      = !empty($row['picName'])
+      ? (string)$row['picName']
+      : 'default_prof.jpg';
+
+    $likes = (int)$row['likes'];
+    $date  = date("F d, Y", strtotime($row['Last_Modified']));
+    $city  = safe($row['location']);
+    $cat   = safe($row['category']);
+    $blog  = sd_safe_text($row['Blog']);
+
+    echo "<div class='post-content'>";
+
+    if (function_exists('renderMediaVideos')) {
+      renderMediaVideos($postID);
+    }
+
+    if (function_exists('renderUserHeader')) {
+      renderUserHeader($username, $pic);
+    }
+
+    renderPostDetails(
+      $date,
+      $city,
+      $cat,
+      $blog,
+      $postID,
+      $likes
+    );
+
+    echo "</div>";
+  }
+
+  $stmt->close();
+}}
+
 // ====================================================================
 // GLOBAL PHOTOS FEED (WITH PROFILE PICTURES)
 // ====================================================================
@@ -3524,6 +3673,7 @@ FROM post_likes
 GROUP BY post_id
 ) l ON l.post_id = p.PostID
 WHERE p.category IN ('stays','eats','events','adventures','vibes')
+AND p.postType = 'photo'
 ORDER BY p.Last_Modified DESC
 ");
 $stmt->execute();
@@ -3561,57 +3711,78 @@ $stmt->close();
 // ====================================================================
 if (!function_exists('all_Videos')) {
 function all_Videos(): void {
-global $con;
-$stmt = $con->prepare("
-SELECT
-p.PostID,
-p.Blog,
-p.videolocation,
-p.videocategory,
-p.Last_Modified,
-u.username,
-u.picName,
-COALESCE(l.like_count, 0) AS likes
-FROM posts p
-JOIN users u ON p.userID = u.userID
-LEFT JOIN (
-SELECT post_id, COUNT(*) AS like_count
-FROM post_likes
-GROUP BY post_id
-) l ON l.post_id = p.PostID
-WHERE p.videocategory IN ('stays','events','adventures','eats','vibes')
-ORDER BY p.Last_Modified DESC
-");
-$stmt->execute();
-$r = $stmt->get_result();
-if (!$r || $r->num_rows === 0) {
-renderEmptyFeed("No videos yet.");
-$stmt->close();
-return;
-}
-while ($row = $r->fetch_assoc()) {
-$postID   = (int)$row['PostID'];
-$username = (string)$row['username'];
-$pic      = !empty($row['picName'])
-? (string)$row['picName']
-: 'default_prof.jpg';
-$likes    = (int)$row['likes'];
-$date = date("F d, Y", strtotime($row['Last_Modified']));
-$city = $row['videolocation'] ?? '';
-$cat  = $row['videocategory'] ?? '';
-$blog = sd_safe_text($row['Blog']);
-echo "
-<div class='post-content'>
-  ";
-  renderMediaVideos($postID);
-  renderUserHeader($username, $pic);
-  renderPostDetails($date, $city, $cat, $blog, $postID, $likes);
-  echo "
-</div>";
-}
-$stmt->close();
-}
-}
+  global $con;
+
+  $stmt = $con->prepare("
+    SELECT
+      p.PostID,
+      p.Blog,
+      p.location,
+      p.category,
+      p.Last_Modified,
+      u.username,
+      u.picName,
+      COALESCE(l.like_count, 0) AS likes
+    FROM posts p
+    JOIN users u ON p.userID = u.userID
+    LEFT JOIN (
+      SELECT post_id, COUNT(*) AS like_count
+      FROM post_likes
+      GROUP BY post_id
+    ) l ON l.post_id = p.PostID
+    WHERE p.postType = 'video'
+      AND p.category IN ('stays','events','adventures','eats','vibes')
+    ORDER BY p.Last_Modified DESC
+  ");
+
+  $stmt->execute();
+  $r = $stmt->get_result();
+
+  if (!$r || $r->num_rows === 0) {
+    renderEmptyFeed("No videos yet.");
+    $stmt->close();
+    return;
+  }
+
+  while ($row = $r->fetch_assoc()) {
+
+    $postID   = (int)$row['PostID'];
+    $username = (string)$row['username'];
+    $pic      = !empty($row['picName'])
+      ? (string)$row['picName']
+      : 'default_prof.jpg';
+
+    $likes = (int)$row['likes'];
+    $date  = date("F d, Y", strtotime($row['Last_Modified']));
+    $city  = safe($row['location']);
+    $cat   = safe($row['category']);
+    $blog  = sd_safe_text($row['Blog']);
+
+    echo "<div class='post-content'>";
+
+    if (function_exists('renderMediaVideos')) {
+      renderMediaVideos($postID);
+    }
+
+    if (function_exists('renderUserHeader')) {
+      renderUserHeader($username, $pic);
+    }
+
+    renderPostDetails(
+      $date,
+      $city,
+      $cat,
+      $blog,
+      $postID,
+      $likes
+    );
+
+    echo "</div>";
+  }
+
+  $stmt->close();
+}}
+
 // ====================================================================
 // PROFILE: ALL OTHER POSTS (viewing someone else) — photos
 // ====================================================================
@@ -3642,6 +3813,7 @@ GROUP BY post_id
 ) l ON l.post_id = p.PostID
 WHERE u.username = ?
 AND p.category IN ('stays','eats','events','adventures','vibes')
+AND p.postType = 'photo'
 ORDER BY p.Last_Modified DESC
 ");
 $stmt->bind_param("s", $currentuser);
@@ -3683,67 +3855,92 @@ $stmt->close();
 // ====================================================================
 if (!function_exists('allOtherVideoPosts')) {
 function allOtherVideoPosts(): void {
-global $con;
-$currentuser = $_GET['currentuser'] ?? '';
-if ($currentuser === '') {
-echo "<p class='empty-feed'>No user selected.</p>";
-return;
-}
-$stmt = $con->prepare("
-SELECT
-p.PostID AS post_id,
-p.Blog   AS content,
-p.videolocation,
-p.videocategory,
-p.Last_Modified,
-u.username,
-u.picName,
-COALESCE(l.like_count, 0) AS likes
-FROM posts p
-JOIN users u ON u.userID = p.userID
-LEFT JOIN (
-SELECT post_id, COUNT(*) AS like_count
-FROM post_likes
-GROUP BY post_id
-) l ON l.post_id = p.PostID
-WHERE u.username = ?
-AND p.videocategory IN ('stays','eats','events','adventures','vibes')
-ORDER BY p.Last_Modified DESC
-");
-$stmt->bind_param("s", $currentuser);
-$stmt->execute();
-$result = $stmt->get_result();
-$viewerID = function_exists('getCurrentUserId') ? getCurrentUserId() : null;
-if ($result->num_rows === 0) {
-renderEmptyFeed("@" . safe($currentuser) . " hasn’t posted any videos yet.");
-$stmt->close();
-return;
-}
-while ($row = $result->fetch_assoc()) {
-$postID   = (int)$row['post_id'];
-$likes    = (int)$row['likes'];
-$liked    = ($viewerID && function_exists('hasUserLiked'))
-? hasUserLiked($postID, $viewerID)
-: false;
-$date     = date("F d, Y", strtotime($row['Last_Modified']));
-$username = (string)$row['username'];
-$pic      = !empty($row['picName'])
-? (string)$row['picName']
-: 'default_prof.jpg';
-$city     = $row['videolocation'] ?? '';
-$cat      = $row['videocategory'] ?? '';
-$blog     = sd_safe_text($row['content']);
-echo "
-<div class='post-content'>
-  ";
-  renderMediaVideos($postID);
-  renderPostDetails($date, $city, $cat, $blog, $postID, $likes, $liked);
-  echo "
-</div>";
-}
-$stmt->close();
-}
-}
+  global $con;
+
+  $currentuser = $_GET['currentuser'] ?? '';
+  if ($currentuser === '') {
+    echo "<p class='empty-feed'>No user selected.</p>";
+    return;
+  }
+
+  $stmt = $con->prepare("
+    SELECT
+      p.PostID AS post_id,
+      p.Blog   AS content,
+      p.location,
+      p.category,
+      p.Last_Modified,
+      p.postType,
+      u.username,
+      u.picName,
+      COALESCE(l.like_count, 0) AS likes
+    FROM posts p
+    JOIN users u ON u.userID = p.userID
+    LEFT JOIN (
+      SELECT post_id, COUNT(*) AS like_count
+      FROM post_likes
+      GROUP BY post_id
+    ) l ON l.post_id = p.PostID
+    WHERE u.username = ?
+      AND p.postType = 'video'
+      AND p.category IN ('stays','eats','events','adventures','vibes')
+    ORDER BY p.Last_Modified DESC
+  ");
+
+  $stmt->bind_param("s", $currentuser);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  $viewerID = function_exists('getCurrentUserId')
+    ? getCurrentUserId()
+    : null;
+
+  if ($result->num_rows === 0) {
+    renderEmptyFeed("@" . safe($currentuser) . " hasn’t posted any videos yet.");
+    $stmt->close();
+    return;
+  }
+
+  while ($row = $result->fetch_assoc()) {
+
+    $postID = (int)$row['post_id'];
+    $likes  = (int)$row['likes'];
+    $liked  = ($viewerID && function_exists('hasUserLiked'))
+      ? hasUserLiked($postID, $viewerID)
+      : false;
+
+    $date     = date("F d, Y", strtotime($row['Last_Modified']));
+    $username = (string)$row['username'];
+    $pic      = !empty($row['picName'])
+      ? (string)$row['picName']
+      : 'default_prof.jpg';
+
+    $city = safe($row['location']);
+    $cat  = safe($row['category']);
+    $blog = sd_safe_text($row['content']);
+
+    echo "<div class='post-content'>";
+
+    if (function_exists('renderMediaVideos')) {
+      renderMediaVideos($postID);
+    }
+
+    renderPostDetails(
+      $date,
+      $city,
+      $cat,
+      $blog,
+      $postID,
+      $likes,
+      $liked
+    );
+
+    echo "</div>";
+  }
+
+  $stmt->close();
+}}
+
 // ====================================================================
 // GENERIC CITY RENDERERS
 // ====================================================================
@@ -3768,6 +3965,7 @@ FROM post_likes
 GROUP BY post_id
 ) l ON l.post_id = p.PostID
 WHERE p.Location = ?
+AND p.postType = 'photo'
 ORDER BY p.Last_Modified DESC
 ");
 $stmt->bind_param("s", $city);
@@ -3803,58 +4001,80 @@ $stmt->close();
 }
 if (!function_exists('renderCityVideos')) {
 function renderCityVideos(string $city): void {
-global $con;
-$stmt = $con->prepare("
-SELECT
-p.PostID,
-p.Blog,
-p.videolocation,
-p.videocategory,
-p.Last_Modified,
-u.username,
-u.picName,
-COALESCE(l.like_count, 0) AS likes
-FROM posts p
-JOIN users u ON p.userID = u.userID
-LEFT JOIN (
-SELECT post_id, COUNT(*) AS like_count
-FROM post_likes
-GROUP BY post_id
-) l ON l.post_id = p.PostID
-WHERE p.videolocation = ?
-ORDER BY p.Last_Modified DESC
-");
-$stmt->bind_param("s", $city);
-$stmt->execute();
-$r = $stmt->get_result();
-if (!$r || $r->num_rows === 0) {
-renderEmptyFeed("No videos for " . safe($city) . " yet.");
-$stmt->close();
-return;
-}
-while ($row = $r->fetch_assoc()) {
-$postID   = (int)$row['PostID'];
-$username = (string)$row['username'];
-$pic      = !empty($row['picName'])
-? (string)$row['picName']
-: 'default_prof.jpg';
-$likes    = (int)$row['likes'];
-$date     = date("F d, Y", strtotime($row['Last_Modified']));
-$loc      = $row['videolocation'] ?? '';
-$cat      = $row['videocategory'] ?? '';
-$blog     = sd_safe_text($row['Blog']);
-echo "
-<div class='post-content'>
-  ";
-  renderMediaVideos($postID);
-  renderUserHeader($username, $pic);
-  renderPostDetails($date, $loc, $cat, $blog, $postID, $likes);
-  echo "
-</div>";
-}
-$stmt->close();
-}
-}
+  global $con;
+
+  $stmt = $con->prepare("
+    SELECT
+      p.PostID,
+      p.Blog,
+      p.location,
+      p.category,
+      p.Last_Modified,
+      p.postType,
+      u.username,
+      u.picName,
+      COALESCE(l.like_count, 0) AS likes
+    FROM posts p
+    JOIN users u ON p.userID = u.userID
+    LEFT JOIN (
+      SELECT post_id, COUNT(*) AS like_count
+      FROM post_likes
+      GROUP BY post_id
+    ) l ON l.post_id = p.PostID
+    WHERE p.postType = 'video'
+      AND p.location = ?
+    ORDER BY p.Last_Modified DESC
+  ");
+
+  $stmt->bind_param("s", $city);
+  $stmt->execute();
+  $r = $stmt->get_result();
+
+  if (!$r || $r->num_rows === 0) {
+    renderEmptyFeed("No videos for " . safe($city) . " yet.");
+    $stmt->close();
+    return;
+  }
+
+  while ($row = $r->fetch_assoc()) {
+
+    $postID   = (int)$row['PostID'];
+    $username = (string)$row['username'];
+    $pic      = !empty($row['picName'])
+      ? (string)$row['picName']
+      : 'default_prof.jpg';
+
+    $likes = (int)$row['likes'];
+    $date  = date("F d, Y", strtotime($row['Last_Modified']));
+    $loc   = safe($row['location']);
+    $cat   = safe($row['category']);
+    $blog  = sd_safe_text($row['Blog']);
+
+    echo "<div class='post-content'>";
+
+    if (function_exists('renderMediaVideos')) {
+      renderMediaVideos($postID);
+    }
+
+    if (function_exists('renderUserHeader')) {
+      renderUserHeader($username, $pic);
+    }
+
+    renderPostDetails(
+      $date,
+      $loc,
+      $cat,
+      $blog,
+      $postID,
+      $likes
+    );
+
+    echo "</div>";
+  }
+
+  $stmt->close();
+}}
+
 // ====================================================================
 // GENERIC CATEGORY RENDERERS
 // ====================================================================
@@ -3879,6 +4099,7 @@ FROM post_likes
 GROUP BY post_id
 ) l ON l.post_id = p.PostID
 WHERE p.category = ?
+AND p.postType = 'photo'
 ORDER BY p.Last_Modified DESC
 ");
 $stmt->bind_param("s", $category);
@@ -3914,58 +4135,80 @@ $stmt->close();
 }
 if (!function_exists('renderCategoryVideos')) {
 function renderCategoryVideos(string $category): void {
-global $con;
-$stmt = $con->prepare("
-SELECT
-p.PostID,
-p.Blog,
-p.videolocation,
-p.videocategory,
-p.Last_Modified,
-u.username,
-u.picName,
-COALESCE(l.like_count, 0) AS likes
-FROM posts p
-JOIN users u ON p.userID = u.userID
-LEFT JOIN (
-SELECT post_id, COUNT(*) AS like_count
-FROM post_likes
-GROUP BY post_id
-) l ON l.post_id = p.PostID
-WHERE p.videocategory = ?
-ORDER BY p.Last_Modified DESC
-");
-$stmt->bind_param("s", $category);
-$stmt->execute();
-$r = $stmt->get_result();
-if (!$r || $r->num_rows === 0) {
-renderEmptyFeed("No videos for " . safe($category) . " yet.");
-$stmt->close();
-return;
-}
-while ($row = $r->fetch_assoc()) {
-$postID   = (int)$row['PostID'];
-$username = (string)$row['username'];
-$pic      = !empty($row['picName'])
-? (string)$row['picName']
-: 'default_prof.jpg';
-$likes    = (int)$row['likes'];
-$date     = date("F d, Y", strtotime($row['Last_Modified']));
-$loc      = $row['videolocation'] ?? '';
-$cat      = $row['videocategory'] ?? '';
-$blog     = sd_safe_text($row['Blog']);
-echo "
-<div class='post-content'>
-  ";
-  renderMediaVideos($postID);
-  renderUserHeader($username, $pic);
-  renderPostDetails($date, $loc, $cat, $blog, $postID, $likes);
-  echo "
-</div>";
-}
-$stmt->close();
-}
-}
+  global $con;
+
+  $stmt = $con->prepare("
+    SELECT
+      p.PostID,
+      p.Blog,
+      p.location,
+      p.category,
+      p.Last_Modified,
+      p.postType,
+      u.username,
+      u.picName,
+      COALESCE(l.like_count, 0) AS likes
+    FROM posts p
+    JOIN users u ON p.userID = u.userID
+    LEFT JOIN (
+      SELECT post_id, COUNT(*) AS like_count
+      FROM post_likes
+      GROUP BY post_id
+    ) l ON l.post_id = p.PostID
+    WHERE p.postType = 'video'
+      AND p.category = ?
+    ORDER BY p.Last_Modified DESC
+  ");
+
+  $stmt->bind_param("s", $category);
+  $stmt->execute();
+  $r = $stmt->get_result();
+
+  if (!$r || $r->num_rows === 0) {
+    renderEmptyFeed("No videos for " . safe($category) . " yet.");
+    $stmt->close();
+    return;
+  }
+
+  while ($row = $r->fetch_assoc()) {
+
+    $postID   = (int)$row['PostID'];
+    $username = (string)$row['username'];
+    $pic      = !empty($row['picName'])
+      ? (string)$row['picName']
+      : 'default_prof.jpg';
+
+    $likes = (int)$row['likes'];
+    $date  = date("F d, Y", strtotime($row['Last_Modified']));
+    $loc   = safe($row['location']);
+    $cat   = safe($row['category']);
+    $blog  = sd_safe_text($row['Blog']);
+
+    echo "<div class='post-content'>";
+
+    if (function_exists('renderMediaVideos')) {
+      renderMediaVideos($postID);
+    }
+
+    if (function_exists('renderUserHeader')) {
+      renderUserHeader($username, $pic);
+    }
+
+    renderPostDetails(
+      $date,
+      $loc,
+      $cat,
+      $blog,
+      $postID,
+      $likes
+    );
+
+    echo "</div>";
+  }
+
+  $stmt->close();
+}}
+
 // ====================================================================
 // PER-CITY WRAPPERS (calls generic helpers)
 // ====================================================================
