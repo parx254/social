@@ -14,58 +14,71 @@ $(document).on("submit", function (e) {
 /* ============================================================
    LIKE BUTTON (jQuery)
 ============================================================ */
-$(document).ready(function () {
-  $(".like-form").on("submit", function (e) {
-    const id = e.target.id;
-    if (id === "postForm_photo" || id === "postForm_video") return;
+/* ============================================================
+   LIKE BUTTON (jQuery — button-based AJAX, old animation)
+============================================================ */
+$(document).on("click", ".like-button", function () {
 
-    e.preventDefault();
+  const $button = $(this);
+  if ($button.prop("disabled")) return;
 
-    var $form = $(this);
-    var $button = $form.find(".like-button");
-    var $icon = $button.find("i");
-    var $count = $button.find(".like-count");
-    var formData = new FormData(this);
+  const postID = $button.data("post-id");
+  if (!postID) return;
 
-    $button.prop("disabled", true);
+  const $icon  = $button.find("i");
+  const $count = $button.find(".like-count");
 
-    $.ajax({
-      url: "control.php",
-      method: "POST",
-      data: formData,
-      processData: false,
-      contentType: false,
-      headers: { "X-Requested-With": "XMLHttpRequest" },
-      success: function (response) {
-        var data;
-        try {
-          data = typeof response === "string" ? JSON.parse(response) : response;
-        } catch (err) {
-          console.error("Invalid JSON from control.php:", response);
-          return;
-        }
+  $button.prop("disabled", true);
 
-        if (data.status === "liked") {
-          $button.addClass("liked");
-          $icon.removeClass("far").addClass("fas");
-        } else if (data.status === "unliked") {
-          $button.removeClass("liked");
-          $icon.removeClass("fas").addClass("far");
-        }
+  $.ajax({
+    url: "control.php",
+    type: "POST",
+    data: {
+      like: 1,
+      post_id: postID
+    },
+    headers: { "X-Requested-With": "XMLHttpRequest" },
 
-        if (typeof data.likes !== "undefined" && $count.length) {
-          $count.text(data.likes);
-        }
-      },
-      error: function (xhr, status, error) {
-        console.error("Like error:", error);
-      },
-      complete: function () {
-        $button.prop("disabled", false);
+    success: function (response) {
+      let data;
+      try {
+        data = typeof response === "string"
+          ? JSON.parse(response)
+          : response;
+      } catch (err) {
+        console.error("Invalid JSON from control.php:", response);
+        return;
       }
-    });
+
+      // ---- OLD HEART ANIMATION BEHAVIOR ----
+      // Animation is driven ONLY by .liked
+      if (data.liked || data.status === "liked") {
+        $button.addClass("liked");
+        $icon.removeClass("far").addClass("fas");
+      } else {
+        $button.removeClass("liked");
+        $icon.removeClass("fas").addClass("far");
+      }
+
+      if (typeof data.likes !== "undefined") {
+        $count.text(data.likes);
+      }
+    },
+
+    error: function (xhr) {
+      if (xhr.status === 401) {
+        alert("Please sign in to like posts.");
+      } else {
+        console.error("Like error:", xhr.responseText);
+      }
+    },
+
+    complete: function () {
+      $button.prop("disabled", false);
+    }
   });
 });
+
 
 /* ============================================================
    LOAD EDIT FORM (jQuery)
