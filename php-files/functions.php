@@ -81,24 +81,6 @@ $stmt->close();
 return $liked;
 }
 }
-// --- Check if the current user liked a specific post ---
-function renderLikeButton(int $postID, int $likes, bool $liked = false): void {
-    // user is signed in if session userID exists
-    $isLoggedIn = !empty($_SESSION['userID']);
-    $iconClass = $liked ? 'fas fa-heart' : 'far fa-heart';
-    $btnClass  = $liked ? 'like-button liked' : 'like-button';
-    // only allow click if logged in
-    $disabled = $isLoggedIn ? '' : 'disabled';
-    echo "
-    <form action='control.php' method='POST' class='like-form'>
-      <input type='hidden' name='post_id' value='{$postID}'>
-      <input type='hidden' name='like' value='1'>
-      <button type='submit' class='{$btnClass}' {$disabled}>
-        <i class='{$iconClass}'></i>
-        <span class='like-count'>{$likes}</span>
-      </button>
-    </form>";
-}
 /* Attempt to connect to MySQL database */
 // Connect to MySQL database
 $con = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
@@ -1714,9 +1696,6 @@ function updateProf() {
   header('Location: my-profile?updated=1');
   exit;
 }
-
-
-
 function renderProfileEditControls() {
 echo '
 <div id=\'changeprofile\'>
@@ -1758,7 +1737,6 @@ echo "
 </div>";
 }
 }
-//edit profile picture
 //edit profile picture
 function profilePic() {
 global $user;
@@ -1903,74 +1881,125 @@ echo "images/cover_pics/" . htmlspecialchars($pic);
 echo "images/cover_pics/default_cover.jpg";
 }
 }
+function renderLikeButton(int $postID, int $likes, bool $liked = false): void {
+    // user is signed in if session userID exists
+    $isLoggedIn = !empty($_SESSION['userID']);
+    $iconClass = $liked ? 'fas fa-heart' : 'far fa-heart';
+    $btnClass  = $liked ? 'like-button liked' : 'like-button';
+    // only allow click if logged in
+    $disabled = $isLoggedIn ? '' : 'disabled';
+    echo "
+    <form action='control.php' method='POST' class='like-form'>
+      <input type='hidden' name='post_id' value='{$postID}'>
+      <input type='hidden' name='like' value='1'>
+      <button type='submit' class='{$btnClass}' {$disabled}>
+        <i class='{$iconClass}'></i>
+        <span class='like-count'>{$likes}</span>
+      </button>
+    </form>";
+}
+
+
 // ==========================
 // LIKE A POST
 // ==========================
 function like() {
-$con = db();
-// User must be logged in
-if (empty($_SESSION['username'])) {
-return;
+    $con = db();
+
+    // User must be logged in
+    if (empty($_SESSION['username'])) {
+        http_response_code(401);
+        echo json_encode(['error' => 'not_logged_in']);
+        exit;
+    }
+
+    $loggedUser = $_SESSION['username'];
+    $postID = $_POST['post_id'] ?? null;
+
+    // Validate input
+    if (empty($postID) || !is_numeric($postID)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'invalid_post_id']);
+        exit;
+    }
+
+    // =======================================
+    // 1. Get logged-in user's userID
+    // =======================================
+    $stmt = $con->prepare("SELECT userID FROM users WHERE username = ?");
+    if (!$stmt) {
+        http_response_code(500);
+        exit;
+    }
+
+    $stmt->bind_param("s", $loggedUser);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
+
+    $userID = $result->fetch_assoc()['userID'] ?? null;
+    if (!$userID) {
+        http_response_code(500);
+        exit;
+    }
+
+    // =======================================
+    // 2. Check if like exists
+    // =======================================
+    $stmt = $con->prepare("
+        SELECT 1 FROM likes
+        WHERE userID = ? AND postID = ?
+    ");
+    $stmt->bind_param("ii", $userID, $postID);
+    $stmt->execute();
+    $exists = $stmt->get_result()->num_rows > 0;
+    $stmt->close();
+
+    // =======================================
+    // 3. Toggle like
+    // =======================================
+    if ($exists) {
+        $stmt = $con->prepare("
+            DELETE FROM likes
+            WHERE userID = ? AND postID = ?
+        ");
+        $liked = false;
+    } else {
+        $stmt = $con->prepare("
+            INSERT INTO likes (userID, postID)
+            VALUES (?, ?)
+        ");
+        $liked = true;
+    }
+
+    $stmt->bind_param("ii", $userID, $postID);
+    $stmt->execute();
+    $stmt->close();
+
+    // =======================================
+    // 4. Get updated like count
+    // =======================================
+    $stmt = $con->prepare("
+        SELECT COUNT(*) AS count
+        FROM likes
+        WHERE postID = ?
+    ");
+    $stmt->bind_param("i", $postID);
+    $stmt->execute();
+    $likes = $stmt->get_result()->fetch_assoc()['count'] ?? 0;
+    $stmt->close();
+
+    // =======================================
+    // 5. AJAX JSON response
+    // =======================================
+    header('Content-Type: application/json');
+    echo json_encode([
+        'liked' => $liked,
+        'likes' => (int)$likes
+    ]);
+    exit;
 }
-$loggedUser = $_SESSION['username'];
-$postID = $_POST['post_id'] ?? null;
-// Validate input
-if (empty($postID) || !is_numeric($postID)) {
-error_log("Like error: invalid post_id");
-return;
-}
-// =======================================
-// 1. Get the logged-in user's userID
-// =======================================
-$stmt = $con->prepare("SELECT userID FROM users WHERE username = ?");
-if (!$stmt) {
-error_log("Like error: prepare failed");
-return;
-}
-$stmt->bind_param("s", $loggedUser);
-$stmt->execute();
-$result = $stmt->get_result();
-$stmt->close();
-$userID = $result->fetch_assoc()['userID'] ?? null;
-if (!$userID) {
-error_log("Like error: userID not found for $loggedUser");
-return;
-}
-// =======================================
-// 2. Check if the like exists (toggle)
-// =======================================
-$stmt = $con->prepare("
-SELECT 1
-FROM likes
-WHERE userID = ? AND postID = ?
-");
-$stmt->bind_param("ii", $userID, $postID);
-$stmt->execute();
-$exists = $stmt->get_result()->num_rows > 0;
-$stmt->close();
-// =======================================
-// 3. Toggle like ON or OFF
-// =======================================
-if ($exists) {
-// Unlike
-$stmt = $con->prepare("DELETE FROM likes WHERE userID = ? AND postID = ?");
-} else {
-// Like
-$stmt = $con->prepare("INSERT INTO likes (userID, postID) VALUES (?, ?)");
-}
-if ($stmt) {
-$stmt->bind_param("ii", $userID, $postID);
-$stmt->execute();
-$stmt->close();
-} else {
-error_log("Like toggle error: prepare failed");
-}
-// =======================================
-// 4. Redirect back to the previous page
-// =======================================
-header("Location: " . $_SERVER['HTTP_REFERER']);
-exit;
-}
+
 function mycurrentcoverpic() {
 // Ensure we know who is logged in
 if (empty($_SESSION['username'])) {
