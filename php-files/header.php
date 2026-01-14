@@ -68,6 +68,7 @@
       var city = "<?php echo addslashes($city); ?>";
     </script>
     <script src="/js/script.js"></script>
+    <script src="/js/edit-post.js"></script>
     <link rel="stylesheet" href="/css/updated.lightbox.css">
     <script src="/js/sd-lightbox.jquery.js" defer></script>
     <style>
@@ -107,9 +108,6 @@
         ?>;
       }
       .page-hero {
-      background-color:
-      <?php echo $currentcolor;
-        ?>;
       background: linear-gradient(180deg,
       <?php echo $currentcolor; ?> 0%,
       color-mix(in srgb,
