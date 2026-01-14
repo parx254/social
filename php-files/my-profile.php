@@ -80,7 +80,6 @@ include "header.php";
   </div>
 </div>
 <?php include "footer.php"; ?>
-<script src="/js/edit-post.js"></script>
 <script src="js/post-form.js"></script>
 </body>
 </html>
