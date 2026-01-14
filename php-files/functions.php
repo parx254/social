@@ -83,17 +83,21 @@ return $liked;
 }
 // --- Check if the current user liked a specific post ---
 function renderLikeButton(int $postID, int $likes, bool $liked = false): void {
-$iconClass = $liked ? 'fas fa-heart' : 'far fa-heart';
-$btnClass  = $liked ? 'like-button liked' : 'like-button';
-echo "
-<form action='control.php' method='POST' class='like-form'>
-  <input type='hidden' name='post_id' value='{$postID}'>
-  <input type='hidden' name='like' value='1'>
-  <button type='submit' class='{$btnClass}'>
-  <i class='{$iconClass}'></i>
-  <span class='like-count'>{$likes}</span>
-</button>
-</form>";
+    // user is signed in if session userID exists
+    $isLoggedIn = !empty($_SESSION['userID']);
+    $iconClass = $liked ? 'fas fa-heart' : 'far fa-heart';
+    $btnClass  = $liked ? 'like-button liked' : 'like-button';
+    // only allow click if logged in
+    $disabled = $isLoggedIn ? '' : 'disabled';
+    echo "
+    <form action='control.php' method='POST' class='like-form'>
+      <input type='hidden' name='post_id' value='{$postID}'>
+      <input type='hidden' name='like' value='1'>
+      <button type='submit' class='{$btnClass}' {$disabled}>
+        <i class='{$iconClass}'></i>
+        <span class='like-count'>{$likes}</span>
+      </button>
+    </form>";
 }
 /* Attempt to connect to MySQL database */
 // Connect to MySQL database
@@ -886,7 +890,7 @@ if (!in_array($ext, $allowed)) {
 throw new Exception("Unsupported image format ($ext)");
 }
 // Actual server directory
-$uploadDir = __DIR__ . "/Images/";
+$uploadDir = __DIR__ . "/images/";
 if (!is_dir($uploadDir)) {
 mkdir($uploadDir, 0777, true);
 }
@@ -894,7 +898,7 @@ $newName = uniqid("img_", true) . "." . $ext;
 // Full server path for saving
 $target = $uploadDir . $newName;
 // Web path for database (THIS FIXES YOUR AJAX ISSUE)
-$webPath = "Images/" . $newName;
+$webPath = "images/" . $newName;
 // Save image
 try {
 resize_image_and_save($file['tmp_name'], $target, 1080, 1080);
@@ -2943,7 +2947,7 @@ continue; // skip invalid image files
 echo "
 <div class='feedimg'>
   <img loading='lazy'
-  src='Images/{$fn}'
+  src='images/{$fn}'
   class='object-fit_cover'
   alt='post image'>
 </div>";
