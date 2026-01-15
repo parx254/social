@@ -35,7 +35,7 @@ include "header.php";
 ?>
 <body>
 <div id="wrapper">
-  <div class="bodycontainer">
+  <div class="body-container">
     <div class="profile-cover">
       <img src="<?php currentcoverpic(); ?>" alt="Cover Photo">
     </div>
