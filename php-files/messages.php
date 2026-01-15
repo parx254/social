@@ -37,7 +37,7 @@ MESSAGES (USING EXISTING CSS)
 <!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NBS5FHD" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div id="wrapper">
-  <div class="bodycontainer">
+  <div class="body-container">
     <div class='profile-cover'>
       <img src="<?php mycurrentcoverpic(); ?>" alt='coverPic'>
     </div>
@@ -50,7 +50,7 @@ MESSAGES (USING EXISTING CSS)
         <div class="section-title">
           <h5><?php echo getUserFullName(); ?></h5>
         </div>
-        <div class="followrow">
+        <div class="follow-row">
           <div class='profile-followers'>
             <?php profileFollowers(); ?>
           </div>
