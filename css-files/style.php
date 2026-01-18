@@ -1780,6 +1780,8 @@ select {
 }
 .section-header {
   margin-bottom: 0.625rem;
+  max-width: 100rem;
+  margin: 0 auto;
 }
 .like-button i {
   transition:
