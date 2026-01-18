@@ -283,7 +283,7 @@ a:hover {
 }
 .age,
 .bio,
-.bodycontainer p,
+.body-container p,
 .city,
 .column a,
 .leftcontent p,
@@ -514,7 +514,7 @@ nav #menu li a {
 button.openbtn:hover {
   filter: brightness(85%) !important;
 }
-.leftside:hover,
+.left-side:hover,
 .post-likes:hover {
   filter: brightness(85%);
 }
@@ -771,7 +771,6 @@ nav #menu li a:hover {
   background: 0 0;
   margin-top: 2.5rem;
 }
-#bgVideo,
 .profile-cover {
   background-color: var(--background-dark-alt);
 }
@@ -879,7 +878,7 @@ temp {
 }
 #bgVideo.fade-in,
 .page-hero video.fade-in {
-  opacity: 0.2;
+  opacity: 0.15;
 }
 .page-hero video::-webkit-media-controls {
   display: none !important;
@@ -906,7 +905,7 @@ temp {
   background: linear-gradient(to top, rgba(255, 255, 255, 0) 70%, rgba(255, 255, 255, 0.7) 100%);
   pointer-events: none;
 }
-.bodycontainer {
+.body-container {
   margin: 0 auto;
   max-width: 100rem;
   background: 0;
@@ -991,7 +990,7 @@ form .submit:hover {
   max-width: 100rem;
   padding: 2.5rem 0;
 }
-.maintitle {
+.main-title {
   margin-bottom: 1.25rem;
   margin-top: 1.25rem;
   font-size: 1.5625rem;
@@ -1008,7 +1007,7 @@ form .submit:hover {
 .contact-us .section-header,
 .location #response4,
 .location .section-header,
-.profile-places-section .bodycontainer,
+.profile-places-section .body-container,
 .profile-places-section h3,
 form#contact-form {
   transform: skewY(1.5deg);
@@ -1140,6 +1139,7 @@ form#contact-form {
   border: 0;
   border-bottom: 0.125rem solid var(--border-inverse);
   height: 1.125rem;
+  max-width: 100rem;
   padding: 1rem;
   transform: skewY(1.5deg);
   width: 50%;
@@ -1253,7 +1253,7 @@ button.highlighted:hover {
   opacity: 0.99 !important;
   width: 8.75rem;
 }
-.followrow,
+.follow-row,
 .messagerow {
   display: flex;
   width: 100%;
@@ -1445,6 +1445,8 @@ footer p:hover {
   padding: 0 0.625rem 0.625rem;
   text-transform: uppercase;
   align-items: flex-start;
+  margin: 0 auto;
+  max-width: 100rem;
   flex: 1;
 }
 .footer-list li {
@@ -1885,21 +1887,14 @@ select {
   margin-bottom: 1rem;
   margin-top: 1rem;
 }
-.intro h1,
-.intro h2 {
-  color: var(--text-heading);
-  text-align: center;
-}
+
 .intro {
   max-width: 100rem;
+  margin: 0 auto;
   padding: 2.5rem 0;
 }
-.centered i,
-.info-login-group.submit:hover,
-.rightside,
-.social-icons:hover {
+.right-side {
   background: var(--surface-inverse);
-  color: var(--text-inverse);
 }
 .weather-container h3,
 span {
@@ -2012,7 +2007,7 @@ textarea:focus {
 .info-login h1,
 .info-login h2,
 .info-login-group.submit a,
-.leftside,
+.left-side,
 .my-input,
 .profile-actions i,
 .tp-ac__list,
@@ -2423,8 +2418,8 @@ button#edit-profile-media {
 .hero #response5 li a:hover {
   color: var(--accent-primary);
 }
-.layout-two-col > .leftside,
-.layout-two-col > .rightside,
+.layout-two-col > .left-side,
+.layout-two-col > .right-side,
 .leftcontent,
 .rightcontent {
   flex: 1 1 50%;
@@ -2544,7 +2539,7 @@ button#edit-profile-media {
   .footer-content,
   .hero #response4,
   .hero #response4 li a,
-  .leftside,
+  .left-side,
   .overlay,
   nav #menu {
     display: none;
@@ -2736,7 +2731,7 @@ button#edit-profile-media {
   .footer-content {
     padding-top: 3.125rem;
   }
-  .bodycontainer {
+  .body-container {
     padding: 0 0.5rem;
   }
   .city-hero-text h1 {
