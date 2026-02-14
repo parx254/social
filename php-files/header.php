@@ -38,6 +38,7 @@
     <link rel="icon" href="/favicon/favicon.ico">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="shortcut icon" href="/favicon/favicon.ico">
+    <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <!-- Modern Browsers -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
@@ -61,7 +62,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title> <?php echo $title; ?> </title>
     <script src="https://www.google.com/recaptcha/api.js?render=6Ld8-MorAAAAAHIGKWJjUqLFYfvh1DR3QXUnBLU5"></script>
-    <link rel="stylesheet" href="/css/style.php" media="screen">
+    <link rel="stylesheet" href="/css/style.css" media="screen">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
     <script>
