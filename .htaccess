@@ -1,0 +1,35 @@
+RewriteEngine On
+RewriteBase /
+
+# Explicit system pages
+RewriteRule ^my-profile/?$ my-profile.php [L,QSA]
+RewriteRule ^(login|logout|register|edit-profile|settings)$ $1.php [L,QSA]
+
+# Control / API endpoints
+RewriteRule ^(control|functions|api|ajax)\.php$ - [L]
+
+# Remove .php from URLs (GET ONLY)
+RewriteCond %{REQUEST_METHOD} GET
+RewriteCond %{THE_REQUEST} \s/([^.]+)\.php[\s?]
+RewriteRule ^ %1 [R=301,L]
+
+# Existing files or directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# City pages
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^([A-Za-z-]+)$ $1.php [L]
+
+# Username profiles
+RewriteRule ^([A-Za-z0-9_.-]+)/?$ profile.php?currentuser=$1 [L,QSA]
+
+
+# --------------------------------------------------
+# 5. MIME types
+# --------------------------------------------------
+AddType video/mp4 .mp4
+AddType video/webm .webm
+AddType audio/mpeg .mp3
+AddType audio/aac .aac
