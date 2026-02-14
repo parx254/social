@@ -468,7 +468,7 @@ function all_users()
   }
 while ($row = $result->fetch_assoc()) {
   $username = htmlspecialchars($row['username']);
-  echo "<p><a href='profile.php?currentuser={$username}'>{$username}</a></p>";
+  echo "<p><a href='/$username'>{$username}</a></p>";
 }
 }
 /* --------------------------------------------------------------------------
@@ -504,10 +504,10 @@ while ($row = $result->fetch_assoc()) {
   $pic = htmlspecialchars($row['picName'] ?: "default_prof.jpg");
   echo "
   <div class='follow'>
-  <a href='profile.php?currentuser={$username}'>
+  <a href='/$username'>
   <img src='images/prof_pics/{$pic}' alt='{$username}'>
   </a>
-  <a href='profile.php?currentuser={$username}'>{$username}</a>
+  <a href='/$username'>{$username}</a>
   </div>";
 }
 $stmt->close();
@@ -543,10 +543,10 @@ while ($row = $result->fetch_assoc()) {
   $pic = htmlspecialchars($row['picName'] ?: "default_prof.jpg");
   echo "
   <div class='follow'>
-  <a href='profile.php?currentuser={$username}'>
+  <a href='/$username'>
   <img src='images/prof_pics/{$pic}' alt='{$username}'>
   </a>
-  <a href='profile.php?currentuser={$username}'>{$username}</a>
+  <a href='/$username'>{$username}</a>
   </div>";
 }
 $stmt->close();
@@ -1288,7 +1288,7 @@ function placesVisited() {
         if ($location !== "") {
           echo "
           <li class='placesvisited'>
-          <a href='" . str_replace(" ", "-", $location) . "'>" . htmlspecialchars($location) . "</a>
+          <a href='/" . rawurlencode(str_replace(" ", "-", $location)) . "'>" . htmlspecialchars($location) . "</a>
           </li>";
         }
     }
@@ -1315,7 +1315,7 @@ function otherplacesVisited() {
         if ($location !== "") {
           echo "
           <li class='placesvisited'>
-          <a href='" . str_replace(" ", "-", htmlspecialchars($location)) . "'>" . htmlspecialchars($location) . "</a>
+          <a href='/" . rawurlencode(str_replace(" ", "-", $location)) . "'>" . htmlspecialchars($location) . "</a>
           </li>";
         }
     }
@@ -2608,11 +2608,11 @@ if (isset($_POST['searchppl'])) {
     while ($row = $result->fetch_assoc()) {
       $response1 .= "
       <li>
-      <a href='profile.php?currentuser=" . $row['username'] . "'>" . $row['username'] . "</a>
+      <a href='/" . $row['username'] . "'>" . $row['username'] . "</a>
       </li>";
       $response2 .= "
       <li>
-      <a href='profile.php?currentuser=" . $row['username'] . "'>" . $row['username'] . "</a>
+      <a href='/" . $row['username'] . "'>" . $row['username'] . "</a>
       </li>";
     }
   $response1 .= '
@@ -2930,12 +2930,10 @@ if (!function_exists('renderUserHeader')) {
     }
   echo "
   <div class='post-title'>
-  <a href='profile.php?currentuser={$u}'>
+  <a href='/$u'>
   <img src='images/prof_pics/{$p}' alt='{$u}' class='post-user-pic'>
   </a>
-  <b>
-  <a href='profile.php?currentuser={$u}'>@{$u}</a>
-  </b>
+  <a href='/$u'>@{$u}</a>
   </div>";
 }
 }
