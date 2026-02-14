@@ -319,7 +319,9 @@ nav #menu #response1 li {
   font-family: MontBold;
 }
 .login p {
-  margin-top: 1rem;
+  margin-top: .5rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 .login a:hover,
 .messageuser p:hover,
@@ -1534,6 +1536,7 @@ footer p:hover {
 .profile-places-section a,
 .profile-places-section a:hover {
   color: var(--surface-1);
+  margin: 0 auto;
 }
 .feedimg video {
   background: var(--background-muted);
