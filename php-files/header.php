@@ -1,387 +1,348 @@
-<!DOCTYPE html>
+<?php
+  if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+  }
+  ?> 
 <html lang="en">
   <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SPN2K44ERM"></script>
+    <!-- Google Tag Manager -->
+    <script>
+      (function(w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({
+          'gtm.start': new Date().getTime(),
+          event: 'gtm.js'
+        });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != 'dataLayer' ? '&l=' + l : '';
+        j.async = true;
+        j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, 'script', 'dataLayer', 'GTM-NBS5FHD');
+    </script>
+    <!-- End Google Tag Manager -->
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131583482-4"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
+      
+      function gtag() {
+        dataLayer.push(arguments);
+      }
       gtag('js', new Date());
-      gtag('config', 'G-SPN2K44ERM');
+      gtag('config', 'UA-131583482-4');
     </script>
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
-    <link rel="icon" href="/favicon/favicon.ico">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
     <link rel="manifest" href="/site.webmanifest">
-    <meta charset="UTF-8">
-    <link rel="preconnect" href="https://www.googletagmanager.com">
-    <link rel="preconnect" href="https://www.google-analytics.com">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <link rel="manifest" href="/manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
+    <meta name="google-site-verification" content="5ScQQrjN7Mb_itI1x2Eb2_r_5LraJmgxI1K-4VlK3Zk">
+    <meta name="Description" content="
+      <?php echo $description; ?>">
+    <meta name="KeyWords" content="
+      <?php echo $keywords; ?>">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title> <?php echo $title; ?> </title>
+    <script src="https://www.google.com/recaptcha/api.js?render=6Ld8-MorAAAAAHIGKWJjUqLFYfvh1DR3QXUnBLU5"></script>
+    <link rel="stylesheet" href="/css/style.css" media="screen">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <meta name="description" content="Parker is a full-stack web developer specializing in modern web apps, cloud integration, and data analytics.">
-    <title>Parker's Portfolio</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script>
+      var city = "<?php echo addslashes($city); ?>";
+    </script>
+    <script src="/js/script.js"></script>
+    <script src="/js/edit-post.js"></script>
+    <link rel="stylesheet" href="/css/updated.lightbox.css">
+    <script src="/js/sd-lightbox.jquery.js" defer></script>
+    <style>
+      #resize #menu li a,
+      .column h5,
+      .column a:hover,
+      .feed-post a:visited,
+      .feed-post a,
+      .feed-post i,
+      ul li a:hover {
+      color:
+      <?php echo $currentcolor;
+        ?>;
+      }
+      .footer a:hover,
+      .footer .active a {
+          color:
+      <?php echo $currentcolor;
+        ?>;
+      }
+      .post-title img:hover {
+      border-color:
+      <?php echo $currentcolor;
+        ?>;
+      }
+      #toggle.on .span,
+      .openbtn,
+      .section-title h1::after,
+      .section-title h2::after,
+      .section-title h3::after,
+      .section-title h4::after,
+      .section-title h5::after,
+      .footer-list li::before,
+      .post-content button {
+      background-color:
+      <?php echo $currentcolor;
+        ?>;
+      }
+      .page-hero {
+      background: linear-gradient(180deg,
+      <?php echo $currentcolor; ?> 0%,
+      color-mix(in srgb,
+      <?php echo $currentcolor; ?> 70%, white) 50%,
+      #ffffff 100%);
+      }
+      #resize #menu li a.active-page,
+      #resize ul li:hover:not(select),
+      .overlay #response2 li a:hover {
+      border-bottom: solid <?php echo $currentcolor;
+        ?>;
+      }
+      .footer-list li.active {
+      border-top: 2px solid <?php echo $currentcolor;
+        ?>;
+      }
+      .footer-list ul li.a.active,
+      .footer-responsive-content a:hover,
+      .post-title a,
+      .overlay #response2 li a:hover {
+      color:
+      <?php echo $currentcolor;
+        ?>;
+      }
+      #resize #menu li.active {
+      border-bottom: 3px solid <?php echo $currentcolor;
+        ?>;
+      }
+      input#searchbox2[type=search]:focus,
+      nav #menu li.active,
+      nav #menu li.active:hover,
+      nav #menu li:hover {
+      border-bottom: 2px solid <?php echo $currentcolor;
+        ?>;
+      }
+      .overlay .closebtn {
+      color:
+      <?php echo $currentcolor;
+        ?>;
+      }
+      .overlay #response2 li a {
+      border-bottom: 1px solid <?php echo $currentcolor;
+        ?>;
+      }
+      .post-feed::-webkit-scrollbar-thumb {
+      border-bottom: 2px solid <?php echo $currentcolor;
+        ?>;
+      }
+      .location input[type="text"]:focus {
+      border-bottom: 2px solid <?php echo $currentcolor;
+        ?>;
+      }
+      .location #response4 li a:hover {
+      border-bottom: 1px solid <?php echo $currentcolor;
+        ?>;
+      color:
+      <?php echo $currentcolor;
+        ?>;
+      }
+    </style>
   </head>
   <body>
-    <div class="left-section">
-      <div class="overlay">
-        <video playsinline muted autoplay loop preload="auto">
-          <source src="videos/philadelphia.mp4" type="video/mp4">
-          <source src="videos/philadelphia.webm" type="video/webm">
-          <source src="videos/philadelphia.ogv" type="video/ogg">
-          Your browser does not support the video tag.
-        </video>
-      </div>
-      <div class="content">
-        <img src="/images/parker.jpg" alt="Headshot of Parker Mc, Full-Stack Web Developer" class="profile-image" loading="lazy">
-        <h1>PARKER</h1>
-        <h2>Web Developer</h2>
-        <a href="https://www.linkedin.com/in/parkmc/" target="_blank" class="icon-btn">
-        <i class="fa fa-linkedin" aria-hidden="true"></i>
-        </a>
-        <a href="tel:+2546449907" class="icon-btn">
-        <i class="fa fa-phone" aria-hidden="true"></i>
-        </a>
-        <a href="https://github.com/parx254" class="icon-btn">
-        <i class="fa fa-github" aria-hidden="true"></i>
-        </a>
-        <a href="/cdn-cgi/l/email-protection#7e0e131d1d121b12121f101a4c3e19131f1712501d1113" class="icon-btn">
-        <i class="fa fa-envelope" aria-hidden="true"></i>
-        </a>
-      </div>
-    </div>
-    <div class="right-section" id="rightSection">
-      <ul class="nav">
-        <li><a data-tab="portfolio" data-color="#34be9d" class="active">Projects</a></li>
-        <li><a data-tab="skills" data-color="#2C6EAD">Skills</a></li>
-        <li><a data-tab="resume" data-color="#6C3BAA">Experience</a></li>
-        <li><a data-tab="about" data-color="#BE3455">About</a></li>
-        <li><a data-tab="contact" data-color="#2A7F62">Contact</a></li>
-        <div class="search-bar">
-          <input type="text" id="searchInput" placeholder="Search...">
-          <button id="searchButton">
-          <i class="fa fa-search" aria-hidden="true"></i>
-          </button>
+    <header>
+      <nav>
+        <!-- LEFT -->
+        <div class="nav-left">
+          <div class="logo">
+            <a href="index.php">
+            <img src="SiteImages/socialdestinationslogowhite.png" alt="social destinations logo">
+            </a>
+          </div>
         </div>
-      </ul>
-      <div id="portfolio" class="tab-content active">
-        <h2>Projects</h2>
-        <div class="project-container">
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/socialdestinations.png" loading="lazy" alt="Social Destinations Screenshot" />
-              <h3>Social Destinations</h3>
-              <p>Social travel platform with multimedia posts, custom maps, and real-time weather integration. Sample Profile: Username: parks | Password: 123 </p>
-              <a href="https://www.socialdestinations.com" target="_blank" class="project-btn">
-              View Project
-              </a>
+        <!-- CENTER -->
+        <ul id="menu" class="nav-center">
+          <li class="
+            <?= ($activePage === 'home') ? 'active' : 'not-active' ?>">
+            <a href="index.php">
+            <i class="fad fa-home-lg-alt" aria-hidden="true"></i>
+            </a>
+          </li>
+          <li class="
+            <?= ($activePage === 'explore') ? 'active' : 'not-active' ?>">
+            <a href="explore.php">
+            <i class="fad fa-globe" aria-hidden="true"></i>
+            </a>
+          </li>
+          <?php if (!isset($_SESSION['username']) || empty($_SESSION['username'])): ?> 
+          <li class="not-active">
+            <a href="login.php">
+            <i class="fad fa-sign-in" aria-hidden="true"></i>
+            </a>
+          </li>
+          <?php else: ?> 
+          <li class="
+            <?= ($activePage === 'profile') ? 'active' : 'not-active' ?>">
+            <a href="my-profile.php">
+            <i class="fad fa-user-circle" aria-hidden="true"></i>
+            </a>
+          </li>
+          <li class="
+            <?= ($activePage === 'messages') ? 'active' : 'not-active' ?>">
+            <a href="messages.php">
+            <i class="fad fa-comments" aria-hidden="true"></i>
+            </a>
+          </li>
+          <li class="
+            <?= ($activePage === 'feed') ? 'active' : 'not-active' ?>">
+            <a href="feed.php">
+            <i class="fad fa-users" aria-hidden="true"></i>
+            </a>
+          </li>
+          <?php endif; ?>
+        </ul>
+        <!-- RIGHT -->
+        <ul class="nav-right">
+          <li class="search-item">
+            <i class="fad fa-search" aria-hidden="true"></i>
+            <div class="search-box">
+              <input type="text" id="searchbox1" placeholder="Search users" autocomplete="off">
+              <div id="response1"></div>
             </div>
-          </div>
-                    <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/sunshine.png" loading="lazy" alt="Sunshine Screenshot" />
-              <h3>Real Estate Intelligence</h3>
-              <p>Real Estate intellingence app with market insight using rentcast API with AI chat.</p>
-              <a href="https://www.sunshineorange.com" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/park-harrisburg.png" loading="lazy" alt="Park Harrisburg Parking Guide Screenshot" />
-              <h3>Park Harrisburg</h3>
-              <p>Custom-built parking guide for Park Harrisburg with responsive UI and API-based data.</p>
-              <a href="https://www.parkharrisburg.com" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/atl-plus.png" loading="lazy" alt="ATL Plus Mobility Parking Guide Screenshot" />
-              <h3>ATL Plus Mobility</h3>
-              <p>Modernized parking portal featuring WordPress integration and scalable plugin architecture.</p>
-              <a href="https://www.atlplusmobility.com" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/ny-mets.png" loading="lazy" alt="NY Mets Parking Guide Screenshot" />
-              <h3>NY Mets Parking Guide</h3>
-              <p>Streamlined fan parking experience with custom theme development and event-based routing.</p>
-              <a href="https://www.nymetsparking.com" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/port-everglades.png" loading="lazy" alt="Port Everglades Screenshot" />
-              <h3>Port Everglades Parking Guide</h3>
-              <p>Parking guide built for Port Everglades.</p>
-              <a href="https://porteverglades.parkingguide.com" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/alamo.png" loading="lazy" alt="Alamo Parking Guide Screenshot" />
-              <h3>Alamo Parking Guide</h3>
-              <p>Scalable parking site for Alamo parking locations with mobile-first design.</p>
-              <a href="https://alamo.parkingguide.com" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/chicago-park.png" loading="lazy" alt="Chicago Park District Parking Guide Screenshot" />
-              <h3>Chicago Park District</h3>
-              <p>Interactive parking guide tailored for Chicago Park District visitors with mobile support and dynamic content.</p>
-              <a href="https://www.chicagoparkdistrictparking.com" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/metra-park.png" loading="lazy" alt="Metra Park Parking Guide Screenshot" />
-              <h3>Metra Parking</h3>
-              <p>Interactive parking guide tailored for Metra visitors with mobile support.</p>
-              <a href="https://www.metraparking.com" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/denver-ski.png" loading="lazy" alt="Denver Ski Shuttle Screenshot" />
-              <h3>Denver Ski Shuttle</h3>
-              <p>Interactive parking guide tailored for Denver Ski visitors with mobile support.</p>
-              <a href="https://www.denverskishuttle.com" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/baltimoreparking.png" loading="lazy" alt="
-                Baltimore Parking Screenshot" />
-              <h3>Baltimore Parking</h3>
-              <p>Interactive parking guide tailored for Baltimore visitors with mobile support.</p>
-              <a href="https://www.baltimoreparking.com" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/balpen.png" loading="lazy" alt="
-                Baltimore Peninsula Parking Screenshot" />
-              <h3>Baltimore Peninsula Parking</h3>
-              <p>Interactive parking guide tailored for Baltimore peninsula visitors with mobile support.</p>
-              <a href="https://www.balpenparking.com" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/xna-parking.png" loading="lazy" alt="
-                XNA Airport Parking Screenshot" />
-              <h3>XNA Airport Parking</h3>
-              <p>Interactive parking guide tailored for XNA Airport visitors with mobile support.</p>
-              <a href="https://www.flyxnaparking.com" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/carmelgazebo.png" loading="lazy" alt="
-                Carmel Gazebo Concerts" />
-              <h3>Carmel Gazebo Concerts</h3>
-              <p>Website for Carmel Gazebo Concerts.</p>
-              <a href="https://carmelgazeboconcerts.org/" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/simplychic.png" loading="lazy" alt="
-                Simply Chic" />
-              <h3>Simply Chic</h3>
-              <p>Website for Simply Chic.</p>
-              <a href="https://simplychicresale.com/" target="_blank" class="project-btn">
-              View Project
-              </a>
-            </div>
-          </div>
-          <div class="project-wrapper">
-            <div class="project-item">
-              <img src="/images/tealfurtrieve.jpg" loading="lazy" alt="Furtrieve" />
-              <h3>Furtrieve</h3>
-              <p>Website for Furtrieve.</p>
-              <button class="project-btn" id="openModal">View Project</button>
-            </div>
-          </div>
-          <!-- Modal -->
-          <div id="videoModal" class="modal">
-            <div class="modal-content">
-              <span class="close">&times;</span>
-              <div style="padding:56.25% 0 0 0;position:relative;">
-                <iframe 
-                  src="https://player.vimeo.com/video/343883172?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" 
-                  frameborder="0" 
-                  allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" 
-                  style="position:absolute;top:0;left:0;width:100%;height:100%;" 
-                  title="Screen_Capture">
-                </iframe>
+          </li>
+          <div class="dropdown">
+            <button class="dropbtn">
+            <i class="fad fa-compass" aria-hidden="true"></i>
+            <i class="fad fa-angle-double-down" aria-hidden="true"></i>
+            </button>
+            <div class="dropdown-content">
+              <div class="row">
+                <div class="column">
+                  <h5>Destinations</h5>
+                  <hr>
+                  <a href="Atlanta.php">Atlanta</a>
+                  <a href="Austin.php">Austin</a>
+                  <a href="Boston.php">Boston</a>
+                  <a href="Charlotte.php">Charlotte</a>
+                  <a href="Chicago.php">Chicago</a>
+                  <a href="Cincinnati.php">Cincinnati</a>
+                  <a href="Dallas.php">Dallas</a>
+                  <a href="Denver.php">Denver</a>
+                  <a href="Honolulu.php">Honolulu</a>
+                  <a href="Houston.php">Houston</a>
+                </div>
+                <div class="column">
+                  <h5>United States</h5>
+                  <hr>
+                  <a href="Kansas-City.php">Kansas City</a>
+                  <a href="Indianapolis.php">Indianapolis</a>
+                  <a href="Las-Vegas.php">Las Vegas</a>
+                  <a href="Los-Angeles.php">Los Angeles</a>
+                  <a href="Miami.php">Miami</a>
+                  <a href="Minneapolis.php">Minneapolis</a>
+                  <a href="Nashville.php">Nashville</a>
+                  <a href="New-Orleans.php">New Orleans</a>
+                  <a href="New-York-City.php">New York City</a>
+                  <a href="Orlando.php">Orlando</a>
+                </div>
+                <div class="column">
+                  <h5>United States</h5>
+                  <hr>
+                  <a href="Philadelphia.php">Philadelphia</a>
+                  <a href="Phoenix.php">Phoenix</a>
+                  <a href="Pittsburgh.php">Pittsburgh</a>
+                  <a href="Portland.php">Portland</a>
+                  <a href="Saint-Louis.php">Saint Louis</a>
+                  <a href="San-Antonio.php">San Antonio</a>
+                  <a href="San-Diego.php">San Diego</a>
+                  <a href="San-Francisco.php">San Francisco</a>
+                  <a href="Seattle.php">Seattle</a>
+                  <a href="Washington-DC.php">Washington DC</a>
+                </div>
+                <div class="column">
+                  <h5>Europe</h5>
+                  <hr>
+                  <a href="Amsterdam.php">Amsterdam</a>
+                  <a href="Barcelona.php">Barcelona</a>
+                  <a href="London.php">London</a>
+                  <a href="Moscow.php">Moscow</a>
+                  <a href="Paris.php">Paris</a>
+                  <h5>Canada</h5>
+                  <hr>
+                  <a href="Edmonton.php">Edmonton</a>
+                  <a href="Montreal.php">Montreal</a>
+                  <a href="Toronto.php">Toronto</a>
+                  <a href="Vancouver.php">Vancouver</a>
+                </div>
+                <div class="column">
+                  <h5>Categories</h5>
+                  <hr>
+                  <a href="eats.php">Eats</a>
+                  <a href="adventures.php">Adventures</a>
+                  <a href="vibes.php">Vibes</a>
+                  <a href="stays.php">Stays</a>
+                  <a href="events.php">Events</a>
+                  <br>
+                  <a href="photos.php">Photos</a>
+                  <a href="videos.php">Videos</a>
+                  <br>
+                  <a href="explore.php"> View All Locations <i class="fa fa-arrow-right" aria-hidden="true"></i>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
-          <script src="https://player.vimeo.com/api/player.js"></script>
+        </ul>
+        <!-- MOBILE TOGGLE -->
+        <div id="toggle">
+          <div class="span" id="one"></div>
+          <div class="span" id="two"></div>
+          <div class="span" id="three"></div>
         </div>
+      </nav>
+      <!-- MOBILE MENU (UNCHANGED) -->
+      <div id="resize">
+        <ul id="menu">
+          <li class="
+            <?= ($activePage === 'home') ? 'active' : 'not-active' ?>">
+            <a href="index.php">Home</a>
+          </li>
+          <li class="
+            <?= ($activePage === 'explore') ? 'active' : 'not-active' ?>">
+            <a href="explore.php">Explore</a>
+          </li>
+          <?php if (!isset($_SESSION['username']) || empty($_SESSION['username'])): ?> 
+          <li class="
+            <?= ($activePage === 'about') ? 'active' : 'not-active' ?>">
+            <a href="about.php">About</a>
+          </li>
+          <li class="not-active">
+            <a href="login.php">Login</a>
+          </li>
+          <?php else: ?> 
+          <li class="
+            <?= ($activePage === 'profile') ? 'active' : 'not-active' ?>">
+            <a href="my-profile.php">Profile</a>
+          </li>
+          <li class="
+            <?= ($activePage === 'Messages') ? 'active' : 'not-active' ?>">
+            <a href="inbox.php">Messages</a>
+          </li>
+          <li class="
+            <?= ($activePage === 'feed') ? 'active' : 'not-active' ?>">
+            <a href="feed.php">Feed</a>
+          </li>
+          <?php endif; ?>
+        </ul>
       </div>
-      <div id="skills" class="tab-content">
-        <h2>Skills</h2>
-        <div id="skills" class="skills-grid">
-          <h3>Web Development</h3>
-          <div class="grid">
-            <div class="skill"><i class="devicon-html5-plain colored"></i><span>HTML</span></div>
-            <div class="skill"><i class="devicon-css3-plain colored"></i><span>CSS</span></div>
-            <div class="skill"><i class="devicon-sass-original colored"></i><span>SCSS</span></div>
-            <div class="skill"><i class="devicon-php-plain colored"></i><span>PHP</span></div>
-            <div class="skill"><i class="devicon-php-plain colored" style="color:#7952B3;"></i><span>PHPMailer</span></div>
-            <div class="skill"><i class="devicon-bootstrap-plain colored" style="color:#7952B3;"></i><span>Bootstrap</span></div>
-            <div class="skill"><i class="devicon-javascript-plain colored"></i><span>JavaScript</span></div>
-            <div class="skill"><i class="devicon-jquery-plain colored"></i><span>jQuery</span></div>
-            <div class="skill"><i class="devicon-react-plain colored"></i><span>ReactJS</span></div>
-            <div class="skill"><i class="devicon-xml-plain colored"></i><span>XML</span></div>
-            <div class="skill"><i class="devicon-mysql-plain colored"></i><span>MySQL</span></div>
-            <div class="skill"><i class="devicon-wordpress-plain colored"></i><span>WordPress</span></div>
-            <div class="skill"><i class="devicon-woocommerce-plain colored"></i><span>WooCommerce</span></div>
-            <div class="skill"><i class="fa-brands fa-elementor" style="color:#92003B;"></i><span>Elementor</span></div>
-            <div class="skill"><i class="fa-solid fa-network-wired" style="color:#888;"></i><span>WebEOC</span></div>
-          </div>
-          <!-- DevOps & Hosting -->
-          <h3>DevOps & Hosting</h3>
-          <div class="grid">
-            <div class="skill"><i class="devicon-amazonwebservices-plain-wordmark colored"></i><span>AWS</span></div>
-            <div class="skill"><i class="devicon-amazonwebservices-plain-wordmark colored" style="color:#4285F4;"></i><span>Amazon S3</span></div>
-            <div class="skill"><i class="fa-solid fa-envelope" style="color:#D44638;"></i><span>Amazon SES</span></div>
-            <div class="skill"><i class="devicon-cpanel-plain colored" style="color:#6C757D;"></i><span>cPanel</span></div>
-            <div class="skill"><i class="devicon-cloudflare-plain colored"></i><span>Cloudflare</span></div>
-            <div class="skill"><i class="devicon-git-plain colored"></i><span>Git</span></div>
-            <div class="skill"><i class="devicon-github-original colored"></i><span>GitHub</span></div>
-            <div class="skill"><i class="devicon-azure-plain colored"></i><span>Azure</span></div>
-            <div class="skill"><i class="devicon-jira-plain colored"></i><span>Jira</span></div>
-            <div class="skill"><i class="devicon-filezilla-plain"></i><span>FileZilla</span></div>
-          </div>
-          <!-- Analytics & SEO -->
-          <h3>Analytics & SEO</h3>
-          <div class="grid">
-            <div class="skill"><i class="devicon-google-plain colored" style="color:#4285F4;"></i><span>Analytics</span></div>
-            <div class="skill"><i class="devicon-google-plain colored" style="color:#34A853;"></i><span>Tag Manager</span></div>
-            <div class="skill"><i class="devicon-google-plain colored" style="color:#EA4335;"></i><span>Search Console</span></div>
-            <div class="skill"><i class="devicon-google-plain colored" style="color:#FBBC05;"></i><span>My Business</span></div>
-            <div class="skill"><i class="fa-solid fa-chart-line" style="color:#28A745;"></i><span>Tableau</span></div>
-            <div class="skill"><i class="fa-solid fa-chart-pie" style="color:#17A2B8;"></i><span>Power BI</span></div>
-            <div class="skill"><i class="fa-solid fa-magnifying-glass-chart" style="color:#0F91D2;"></i><span>Ahrefs</span></div>
-          </div>
-          <!-- Tools & Platforms -->
-          <h3>Tools & Platforms</h3>
-          <div class="grid">
-            <div class="skill"><i class="devicon-visualstudio-plain colored"></i><span>Visual Studio</span></div>
-            <div class="skill"><i class="devicon-jira-plain colored"></i><span>Jira</span></div>
-            <div class="skill"><i class="fa-brands fa-microsoft" style="color:#F25022;"></i><span>Office 365</span></div>
-            <div class="skill"><i class="devicon-google-plain colored" style="color:#4285F4;"></i><span>Google Suite</span></div>
-            <div class="skill"><i class="fa-solid fa-pen-nib" style="color:#DAA520;"></i><span>InVision</span></div>
-            <div class="skill"><i class="devicon-photoshop-plain colored"></i><span>Photoshop</span></div>
-          </div>
-        </div>
-      </div>
-      <div id="resume" class="tab-content">
-        <h2>Professional Experience</h2>
-        <div class="work-experience">
-          <div class="header-container">
-            <div class="company-info">
-              <p class="job-title">Full Stack Web Developer</p>
-              <p class="company">SP+ (a Metropolis Technologies company) - Remote</p>
-              <p class="job-dates"> Nov 2021 - Nov 2024</p>
-            </div>
-            <div class="logo-container">
-              <img src="Metropolis-SP-header-logo.png" loading="lazy" class="resume-image" alt="SP+ Logo">
-            </div>
-          </div>
-          <ul class="job-details">
-            <li>Developed WordPress websites and structured the website architecture using HTML, CSS, PHP, MySQL, and jQuery, delivering tailored solutions that exceeded client expectations and supported business growth.</li>
-            <li>Optimized website performance and managed all technical aspects of WordPress.</li>
-            <li>Implemented digital analytics tagging standards, improving SEO analysis.</li>
-            <li>Set up an e-commerce API plugin, enabling features for parking locations and a secure payment system.</li>
-            <li>Configured and maintained MySQL databases, supporting custom features and efficient data storage.</li>
-            <li>Deployed and configured scalable WordPress instances on AWS using S3 and Route 53.</li>
-            <li>Integrated Amazon SES for transactional emails, enhancing reliability and optimizing deliverability.</li>
-            <li>Revitalized and optimized custom WordPress plugins, creating a more intuitive user experience.</li>
-            <li>Managed daily WordPress website operations, ensuring uptime, functionality, and responsiveness.</li>
-          </ul>
-        </div>
-        <div class="work-experience">
-          <div class="header-container">
-            <div class="company-info">
-              <p class="job-title">Technical Implementation Analyst</p>
-              <p class="company">Juvare - Arlington, VA</p>
-              <p class="job-dates">Sept 2019 - Sept 2021</p>
-            </div>
-            <div class="logo-container">
-              <img src="JUVARE_Lockup_B_Color.png" loading="lazy" class="resume-image" alt="Juvare Logo">
-            </div>
-          </div>
-          <ul class="job-details">
-            <li>Collaborated with government agencies and senior staff to design and implement automated emergency management processes for seamless deployment in critical scenarios.</li>
-            <li>Utilized HTML, CSS, JavaScript, SQL, and XML to configure products and tailor the WebEOC user interface, meeting diverse client requirements for emergency response.</li>
-            <li>Partnered with clients onsite and remotely to gather detailed requirements, ensuring 100% alignment with operational needs, and delivering accurate documentation.</li>
-            <li>Contributed to all phases of product development, from concept to quality assurance, resulting in the successful deployment of customized solutions.</li>
-            <li>Used Visual Studio to review, debug, and edit code, ensuring code quality and faster iterations.</li>
-            <li>Demonstrated effective workflow management using Jira while collaborating with other members.</li>
-          </ul>
-        </div>
-      </div>
-      <div id="about" class="tab-content">
-        <h2>About Me</h2>
-        <p class="about-me">
-          Hi, I'm Parker! Welcome to my portfolio! I am a results-driven Full-Stack Web Developer specializing in high-performance websites and scalable digital solutions. With expertise in HTML, CSS, PHP, MySQL, JavaScript, and AWS, I craft intuitive, user-focused platforms that enhance functionality, optimize SEO, and drive engagement.
-          <br><br>
-          Explore my work and see how I bring ideas to life at parkermc.com. I also built a social travel web application at <a href="https://socialdestinations.com" target="_blank">socialdestinations.com</a>. Let’s connect and build something exceptional!
-        </p>
-      </div>
-      <div id="contact" class="tab-content">
-        <h2>Contact Me</h2>
-        <p class="about-me">
-          Have a project in mind, or just want to say hi? I’d love to hear from you! Fill out the form below or reach out directly through LinkedIn or email.
-        </p>
-        <form class="contact-form" id="contactForm" method="POST">
-          <input type="text" name="website" id="website" style="display:none;">
-          <label for="name">Name</label>
-          <input type="text" name="name" placeholder="Name" id="name" required>
-          <label for="email">Email</label>
-          <input type="email" name="email" placeholder="Email" id="email" required>
-          <label for="message">Message</label>
-          <textarea name="message" id="message" placeholder="Message" rows="3" required></textarea>
-          <button type="submit">Send Message</button>
-        </form>
-        <div id="formMessage" class="form-message"></div>
-      </div>
-    </div>
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
-    <script src="js/test.js"></script>
-  </body>
-</html>
+    </header>
