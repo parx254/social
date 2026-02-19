@@ -4282,4 +4282,187 @@ if (!function_exists('all_Vibes')) {
 if (!function_exists('all_Vibes_Videos')) {
   function all_Vibes_Videos(): void { renderCategoryVideos('vibes'); }
 }
+
+// ====================================================================
+// AI ASSISTANT WIDGET — floating chat bubble on every page
+// Call renderAIAssistant() in footer.php to display on all pages
+// ====================================================================
+if (!function_exists('renderAIAssistant')) {
+  function renderAIAssistant(): void {
+    $loggedIn   = !empty($_SESSION['username']);
+    $username   = $loggedIn ? htmlspecialchars($_SESSION['username']) : 'Traveler';
+    $userContext = $loggedIn
+      ? "The user is logged in as @{$username}."
+      : "The user is not logged in.";
+    ?>
+    <!-- ── AI ASSISTANT WIDGET ───────────────────────────── -->
+    <div id="sd-ai-widget">
+
+      <!-- Toggle bubble -->
+      <button id="sd-ai-toggle" aria-label="Open AI assistant" title="Ask AI">
+        <svg id="sd-ai-icon-chat" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <svg id="sd-ai-icon-close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+
+      <!-- Chat panel -->
+      <div id="sd-ai-panel" aria-hidden="true">
+        <div id="sd-ai-header">
+          <div id="sd-ai-header-left">
+            <div id="sd-ai-avatar">✦</div>
+            <div>
+              <div id="sd-ai-name">Travel Assistant</div>
+              <div id="sd-ai-status"><span id="sd-ai-dot"></span>Online</div>
+            </div>
+          </div>
+          <button id="sd-ai-clear" title="Clear chat">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+          </button>
+        </div>
+
+        <div id="sd-ai-messages">
+          <div class="sd-ai-msg sd-ai-msg--assistant">
+            <div class="sd-ai-bubble">
+              👋 Hi<?php echo $loggedIn ? ", @{$username}" : ""; ?>! I'm your Social Destinations travel guide. Ask me about cities, things to do, eats, stays, adventures — anything travel!
+            </div>
+          </div>
+        </div>
+
+        <div id="sd-ai-suggestions">
+          <button class="sd-ai-suggestion" onclick="sdAiSuggest(this)">Best cities to visit?</button>
+          <button class="sd-ai-suggestion" onclick="sdAiSuggest(this)">Top eats in Nashville</button>
+          <button class="sd-ai-suggestion" onclick="sdAiSuggest(this)">Weekend adventure ideas</button>
+        </div>
+
+        <div id="sd-ai-input-row">
+          <textarea id="sd-ai-input" placeholder="Ask about travel, cities, tips…" rows="1" onkeydown="sdAiKey(event)" oninput="sdAiResize(this)"></textarea>
+          <button id="sd-ai-send" onclick="sdAiSend()" aria-label="Send">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    (function() {
+      var SYSTEM = "You are a friendly, knowledgeable travel assistant for Social Destinations (socialdestinations.com), a travel social network. <?php echo $userContext; ?> You help users discover cities, restaurants, hotels, adventures, events, and travel tips. The site covers 50+ cities across the US, Canada, and Europe including: Atlanta, Austin, Boston, Charlotte, Chicago, Cincinnati, Dallas, Denver, Honolulu, Houston, Indianapolis, Kansas City, Las Vegas, Los Angeles, Miami, Minneapolis, Nashville, New Orleans, New York City, Orlando, Philadelphia, Phoenix, Pittsburgh, Portland, Saint Louis, San Antonio, San Diego, San Francisco, Seattle, Washington DC, Tampa, Calgary, Edmonton, Montreal, Toronto, Vancouver, Amsterdam, Athens, Barcelona, Berlin, London, Milan, Moscow, Paris, Rome, Venice. Keep answers concise and helpful. Use a warm, enthusiastic tone. If asked about a city on the site, mention they can explore it at socialdestinations.com/CityName.";
+
+      var history = [];
+      var isLoading = false;
+
+      var toggle = document.getElementById('sd-ai-toggle');
+      var panel  = document.getElementById('sd-ai-panel');
+      var iconChat  = document.getElementById('sd-ai-icon-chat');
+      var iconClose = document.getElementById('sd-ai-icon-close');
+
+      toggle.addEventListener('click', function() {
+        var open = panel.classList.toggle('sd-open');
+        panel.setAttribute('aria-hidden', !open);
+        iconChat.style.display  = open ? 'none'  : '';
+        iconClose.style.display = open ? ''      : 'none';
+        if (open) { document.getElementById('sd-ai-input').focus(); }
+      });
+
+      document.getElementById('sd-ai-clear').addEventListener('click', function() {
+        history = [];
+        var msgs = document.getElementById('sd-ai-messages');
+        msgs.innerHTML = '<div class="sd-ai-msg sd-ai-msg--assistant"><div class="sd-ai-bubble">Chat cleared! What would you like to explore? 🌍</div></div>';
+        document.getElementById('sd-ai-suggestions').style.display = 'flex';
+      });
+
+      window.sdAiKey = function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sdAiSend(); }
+      };
+
+      window.sdAiResize = function(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+      };
+
+      window.sdAiSuggest = function(btn) {
+        document.getElementById('sd-ai-input').value = btn.textContent;
+        document.getElementById('sd-ai-suggestions').style.display = 'none';
+        sdAiSend();
+      };
+
+      window.sdAiSend = function() {
+        if (isLoading) return;
+        var input = document.getElementById('sd-ai-input');
+        var text  = input.value.trim();
+        if (!text) return;
+
+        input.value = '';
+        input.style.height = 'auto';
+        document.getElementById('sd-ai-suggestions').style.display = 'none';
+        document.getElementById('sd-ai-send').disabled = true;
+        isLoading = true;
+
+        addMsg('user', text);
+        history.push({ role: 'user', content: text });
+
+        var typingEl = addTyping();
+
+        fetch('/ai-proxy.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system: SYSTEM,
+            messages: history
+          })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var reply = (data.content || []).map(function(b){ return b.text || ''; }).join('');
+          if (!reply) reply = "Sorry, I couldn't get a response. Please try again!";
+          typingEl.remove();
+          addMsg('assistant', reply);
+          history.push({ role: 'assistant', content: reply });
+        })
+        .catch(function(err) {
+          typingEl.remove();
+          addMsg('assistant', "Hmm, something went wrong connecting to the AI. Please try again!");
+        })
+        .finally(function() {
+          isLoading = false;
+          document.getElementById('sd-ai-send').disabled = false;
+          document.getElementById('sd-ai-input').focus();
+        });
+      };
+
+      function addMsg(role, text) {
+        var msgs = document.getElementById('sd-ai-messages');
+        var div  = document.createElement('div');
+        div.className = 'sd-ai-msg sd-ai-msg--' + role;
+        var bub  = document.createElement('div');
+        bub.className = 'sd-ai-bubble';
+        bub.innerHTML = simpleFormat(text);
+        div.appendChild(bub);
+        msgs.appendChild(div);
+        msgs.scrollTop = msgs.scrollHeight;
+      }
+
+      function addTyping() {
+        var msgs = document.getElementById('sd-ai-messages');
+        var div  = document.createElement('div');
+        div.className = 'sd-ai-msg sd-ai-msg--assistant';
+        div.innerHTML = '<div class="sd-ai-bubble"><div class="sd-ai-typing"><span></span><span></span><span></span></div></div>';
+        msgs.appendChild(div);
+        msgs.scrollTop = msgs.scrollHeight;
+        return div;
+      }
+
+      function simpleFormat(text) {
+        // Bold
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // Inline code
+        text = text.replace(/`([^`]+)`/g, '<code style="background:#e8f0fb;padding:1px 5px;border-radius:4px;font-size:12px">$1</code>');
+        // Newlines
+        text = text.replace(/\n/g, '<br>');
+        return text;
+      }
+    })();
+    </script>
+    <!-- ── END AI ASSISTANT WIDGET ───────────────────────── -->
+    <?php
+  }
+}
 ?>
