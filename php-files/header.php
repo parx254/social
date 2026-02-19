@@ -68,7 +68,7 @@
       .feed-post a:visited,
       .feed-post a,
       .feed-post i,
-      ul li a:hover {
+      ul li a:hover,.sd-ai-suggestion {
       color:
       <?php echo $currentcolor;
         ?>;
@@ -79,7 +79,7 @@
       <?php echo $currentcolor;
         ?>;
       }
-      .post-title img:hover {
+      .post-title img:hover,.sd-ai-suggestion:hover,#sd-ai-input:focus {
       border-color:
       <?php echo $currentcolor;
         ?>;
@@ -94,6 +94,11 @@
       .footer-list li::before,
       .post-content button {
       background-color:
+      <?php echo $currentcolor;
+        ?>;
+      }
+      #sd-ai-toggle,#sd-ai-header,#sd-ai-send,.sd-ai-msg--user .sd-ai-bubble,.sd-ai-suggestion:hover {
+      background:
       <?php echo $currentcolor;
         ?>;
       }
