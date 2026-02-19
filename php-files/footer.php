@@ -112,7 +112,7 @@
   </div>
   <div class='footer-about'>
     <div class='copyright'>
-      &copy;2026 Social Destinations, Inc. All rights reserved · <a href='privacy-policy.php'>Privacy</a>
+      &copy;2026 Social Destinations, Inc. All rights reserved <a href='privacy-policy.php'>Privacy Policy</a>
     </div>
     <ul class='about-list'>
       <li>
@@ -122,6 +122,7 @@
       <li>
     </ul>
   </div>
+  <?php renderAIAssistant(); ?>
   <div class='footer-responsive-content'>
     <div class='footer-list'>
       <ul>
