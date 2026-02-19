@@ -3052,7 +3052,8 @@ button#edit-profile-media {
 }
 
 .sd-ai-suggestion:hover {
-  ilter: brightness(85%) !important;
+  filter: brightness(85%) !important;
+  color: var(--text-inverse);
   border-color: var(--accent-primary);
 }
 
