@@ -33,34 +33,33 @@
       gtag('js', new Date());
       gtag('config', 'UA-131583482-4');
     </script>
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <meta name="theme-color" content="#ffffff">
-    <meta name="msapplication-TileColor" content="#ffffff">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-site-verification" content="5ScQQrjN7Mb_itI1x2Eb2_r_5LraJmgxI1K-4VlK3Zk">
-    <meta name="Description" content="
-      <?php echo $description; ?>">
-    <meta name="KeyWords" content="
-      <?php echo $keywords; ?>">
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title> <?php echo $title; ?> </title>
-    <script src="https://www.google.com/recaptcha/api.js?render=6Ld8-MorAAAAAHIGKWJjUqLFYfvh1DR3QXUnBLU5"></script>
-    <link rel="stylesheet" href="/css/style.css" media="screen">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
-    <script>
-      var city = "<?php echo addslashes($city); ?>";
-    </script>
-    <script src="/js/script.js"></script>
-    <script src="/js/edit-post.js"></script>
-    <link rel="stylesheet" href="/css/updated.lightbox.css">
-    <script src="/js/sd-lightbox.jquery.js" defer></script>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><?php echo $title; ?></title>
+<meta name="description" content="<?php echo $description; ?>">
+<meta name="keywords" content="<?php echo $keywords; ?>">
+<meta name="google-site-verification" content="5ScQQrjN7Mb_itI1x2Eb2_r_5LraJmgxI1K-4VlK3Zk">
+<meta name="theme-color" content="#ffffff">
+<meta name="msapplication-TileColor" content="#ffffff">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://www.googletagmanager.com">
+<link rel="preconnect" href="https://www.google-analytics.com">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/updated.lightbox.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.google.com/recaptcha/api.js?render=6Ld8-MorAAAAAHIGKWJjUqLFYfvh1DR3QXUnBLU5"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+<script>
+  var city = "<?php echo addslashes($city); ?>";
+</script>
+<script src="/js/script.js" defer></script>
+<script src="/js/edit-post.js" defer></script>
+<script src="/js/sd-lightbox.jquery.js" defer></script>
     <style>
       #resize #menu li a,
       .column h5,
